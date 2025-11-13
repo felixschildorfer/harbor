@@ -1,0 +1,926 @@
+html {
+    touch-action: manipulation;
+}
+
+body {
+    font:               12px "Open Sans", "Helvetica Neue", sans-serif;
+    line-height:        1.88889;
+    color:              #000000;
+    background:         #f9f8f7;
+    overflow:           hidden;
+    margin:             0;
+    padding:            0;
+}
+
+/* ==========================
+     Dark Theme (opt-in via body.dark)
+     ========================== */
+body.dark {
+        color:              #f2f2f3;
+        background:         #1e1f22;
+}
+body.dark a:link,
+body.dark a:active,
+body.dark a:visited { color:#ff8888; }
+body.dark a:hover { color:#ffb0b0; }
+
+/* Panels, menus, overlays */
+body.dark #header,
+body.dark .submenu,
+body.dark #contextMenu,
+body.dark #tabularEditor,
+body.dark #miniature,
+body.dark #model,
+body.dark #cloud,
+body.dark #search input,
+body.dark #search select,
+body.dark #loadingOverlay { background-color:rgba(50,51,56,0.92); color:#f2f2f3; }
+
+body.dark #loadingOverlay { backdrop-filter:blur(2px); }
+body.dark #loadingSpinner { border-color:#444; border-top-color:#ff6666; }
+
+/* Borders / outlines */
+body.dark #header,
+body.dark .submenu,
+body.dark #contextMenu,
+body.dark #tabularEditor,
+body.dark #tabularEditor .closebutton,
+body.dark #miniature { border-color:#3a3b40; }
+
+/* bubbleOutline styles moved to svg.css */
+
+/* Shadows softened */
+body.dark #header,
+body.dark .submenu,
+body.dark #contextMenu,
+body.dark #miniature,
+body.dark .collapsed { box-shadow:0 4px 14px rgba(0,0,0,0.6); }
+
+/* Menu text / hovers */
+body.dark .menu { color:#f2f2f3; }
+body.dark .menu:hover { color:#fff; }
+body.dark .submenu li { color:#f2f2f3; }
+body.dark .submenu li:hover { background-color:#b55; color:#fff; }
+body.dark .submenu a { color:#f2f2f3; }
+body.dark .submenu a:hover { color:#fff; text-shadow:0 0 6px #ff8888; }
+
+/* Inputs */
+body.dark input,
+body.dark select,
+body.dark textarea { background:#2a2b2f; color:#f2f2f3; border:1px solid #555; }
+body.dark input:focus,
+body.dark select:focus,
+body.dark textarea:focus { outline:1px solid #ff6666; }
+body.dark input:invalid { background-color:#5a1e1e; }
+
+/* Toggle / buttons inside menus */
+body.dark .toggler { border-color:#888; background:#333; color:#eee; }
+body.dark .collapsed { background-color:#333; }
+body.dark .expanded { background-color:#c33; }
+
+/* Status elements */
+body.dark #model { background-color:#1e1f22; color:#f2f2f3; }
+body.dark #cloud { color:#f2f2f3; }
+
+/* Graph specific colors (edge strokes etc.) adapt subtly */
+/* Dark theme: let SVG be transparent so underlying watermark (#disclaimer) can show through */
+body.dark svg#graph { background:transparent; }
+/* SVG graph specific styling moved to svg.css */
+
+/* Scrollbars (WebKit) */
+body.dark ::-webkit-scrollbar { width:10px; }
+body.dark ::-webkit-scrollbar-track { background:#2a2b2f; }
+body.dark ::-webkit-scrollbar-thumb { background:#555; border-radius:5px; }
+body.dark ::-webkit-scrollbar-thumb:hover { background:#666; }
+
+/* Loading overlay text color inherited; ensure indicator text */
+body.dark #loadingIndicator { color:#f2f2f3; }
+
+/* Prevent white flashes in transitions */
+@media (prefers-reduced-motion:no-preference) {
+    body.dark { transition:background-color .25s ease, color .25s ease; }
+}
+
+/* Temporalization visibility control */
+body.temporal-uni li.bi,
+body.temporal-uni li.crt { display:none !important; }
+/* In bi mode hide only items that are exclusively crt (have crt but not bi) */
+body.temporal-bi  li.crt:not(.bi) { display:none !important; }
+/* All modes share unchanged base items; items with multiple classes remain visible if any matching mode is active */
+
+/* Uni-only items: give them class 'uni' so they hide in bi/crt modes */
+body.temporal-bi  li.uni,
+body.temporal-crt li.uni { display:none !important; }
+
+/* Metadata / equivalence visibility control
+    Metadata specific options (li.metadata) are only shown when body has class 'metadata'.
+    Equivalence specific options (li.equivalence) are only shown when body has class 'equivalence'.
+    This mirrors how temporalization toggles classes on <body>. */
+body:not(.metadata)    li.metadata { display:none !important; }
+body:not(.equivalence) li.equivalence { display:none !important; }
+
+/* Route key labels (text on key routes) */
+text.routeText {
+    font-family:        "Impact", "Haettenschweiler", "Franklin Gothic Bold", "Charcoal", "Helvetica Inserat", "Bitstream Vera Sans Bold", "Arial Black", sans-serif;
+    font-size:          20pt;
+    font-weight:        normal;
+    fill:               white;
+    dominant-baseline:  middle;
+    pointer-events:     none;
+}
+
+/* Fine-tune baseline if fonts render slightly off; adjust dy as needed */
+text.routeText > textPath { dominant-baseline: middle; }
+
+/* Chronon provider labels on nexus-attribute edges */
+.chronicleLabel {
+    font-size:          10px;
+    fill:               currentColor;
+    pointer-events:     none;
+}
+
+a:link, a:active, a:visited {
+    color:              #b55;
+    text-decoration:    none;
+}
+a:hover {
+    color:              #633;
+    text-decoration:    underline;
+}
+
+.unselectable {
+    -moz-user-select:     none;
+    -khtml-user-select:   none;
+    -webkit-user-select:  none;
+    -ms-user-select:      none;
+    user-select:          none;
+}
+
+.invisible {
+    opacity:            0;
+    filter:             alpha(opacity=0);
+    z-index:            1000;
+    position:           absolute;
+    left:               0;
+}
+
+.editable:invalid {
+    background-color:   #fbb;
+}
+
+.closebutton {
+    display:            none;
+    background-image:   url(deleteButton.png);
+    position:           absolute;
+    left:               -15px;
+    top:                -15px;
+    height:             30px;
+    width:              30px;
+    z-index:            14;
+}
+.closebutton:active {
+    background-image:   url(deleteButtonPressed.png);
+}
+
+#route {
+    position:           absolute;
+    top:                42px;
+    right:              7px;
+    display:            block;
+    z-index:            9;
+}
+
+/* the SVG graph used as the main interface */
+#graph {
+    position:           absolute;
+    top:                0px;
+    left:               0px;
+    width:              100%;
+    height:             100%;
+    z-index:            1;
+}
+
+/* minature - positioned in the southeast corner */
+#miniature {
+    position:           absolute;
+    bottom:             40px;
+    right:              42px;
+    background-color:   #fff;
+    z-index:            2;
+    box-shadow:         0px 5px 10px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 5px 10px rgba(0, 0, 0, 0.5);
+}
+#minigraph {
+    display:            block;
+}
+
+#search {
+    position:           absolute;
+    top:                42px;
+    left:               50%;
+    margin-left:        -150px; /* half of the actual width */
+    display:            block;
+    z-index:            9;
+}
+#search input {
+    width:              150px;
+    text-align:         left;
+    background-color:   rgba(255, 255, 255, 0.9);
+}
+#search select {
+    width:              150px;
+    text-align:         left;
+    background-color:   rgba(255, 255, 255, 0.9);
+}
+
+/* shows a beta disclaimer */
+#disclaimer {
+    display:            none;
+    position:           absolute;
+    font:               bold 48pt sans-serif;
+    color:              white;
+    top:                42px;
+    left:               16px;
+    z-index:            0; 
+    pointer-events:     none; /* ensure it never blocks graph interaction */
+}
+/* Dark theme: slightly dimmed but clearly visible */
+body.dark #disclaimer { color:rgba(255,255,255,0.03); }
+
+/* the logotype 'ANCHOR' */
+#logotype {
+    position:           absolute;
+    z-index:            1;
+    display:            block;
+    left:               12px;
+    bottom:             6px;
+    width:              142px;
+}
+
+/* shows login status to the cloud (google app engine) */
+#cloud {
+    font:               8pt sans-serif;
+    position:           absolute;
+    color:              black;
+    text-align:         left;
+    bottom:             40px;
+    left:               12px;
+    cursor:             pointer;
+    display:            block;
+    z-index:            10;
+}
+
+/* shows model name or local editing status
+   Repositioned to bottom right under the miniature for visual balance */
+#model {
+    font:               8pt sans-serif;
+    position:           absolute;
+    color:              black;
+    text-align:         right;
+    bottom:             6px;      /* same vertical offset as logotype */
+    right:              42px;     /* align with miniature's right edge */
+    left:               auto;
+    display:            inline-block; /* shrink wrap for background box */
+    background-color:   #f9f8f7; /* opaque box matching main background */
+    padding:            2px 6px; /* small breathing room around text */
+    border-radius:      3px;     /* subtle rounding */
+    pointer-events:     none;    /* don't block interactions with canvas beneath */
+    z-index:            10;
+}
+
+/* context menu that pops up when editing */
+#contextMenu {
+    position:           absolute;
+    top:                0;
+    left:               0;
+    display:            block;
+    background-color:   rgba(236, 234, 234, 0.9);
+    color:              black;
+    padding:            0;
+    margin:             0;
+    text-align:         left;
+    border:             2px solid #fff;
+    z-index:            11;
+    box-shadow:         0px 5px 10px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 5px 10px rgba(0, 0, 0, 0.5);
+}
+#contextMenu .items {
+    margin:             10px 10px 5px 10px;
+}
+#contextMenu .items tr, #contextMenu .items td {
+    background:         transparent !important; /* remove banding */
+}
+body.dark #contextMenu .items tr, body.dark #contextMenu .items td {
+    background:         transparent !important;
+}
+#contextMenu .topper {
+    font:               10px sans-serif;
+    cursor:             move;
+    color:              #333;
+    height:             15px;
+    padding-top:        2px;
+    padding-left:       24px;
+    border-bottom:      1px solid #888;
+    background-color:   rgba(255, 255, 255, 0.8);
+}
+
+#tabularEditor {
+    position:           absolute;
+    overflow:           auto;
+    scroll-behavior:    smooth;
+    top:                40px;
+    left:               3%;
+    width:              94%;
+    height:             90%;
+    display:            flex;
+    flex-wrap:          wrap;
+    flex-direction:     column;
+    align-content:      flex-start;
+    background-color:   rgba(236, 234, 234, 0.9);
+    color:              black;
+    padding:            5px;
+    margin:             0;
+    text-align:         left;
+    border:             2px solid #fff;
+    z-index:            11;
+}
+#tabularEditor .closebutton {
+    display:            inherit;
+    position:           fixed;
+    top:                28px;
+    left:               calc(3% - 15px);
+    z-index:            12;
+}
+#tabularEditor .tabularComponent {
+    flex-grow:          1;
+    flex-shrink:        1;
+    flex-basis:         0px;
+    margin-top:         0px;
+    margin-left:        8px;
+    margin-right:       8px;
+    margin-bottom:      4px;
+}
+#tabularEditor .tabularEditable {
+    margin-top:         0px;
+    margin-left:        0px;
+    margin-right:       2px;
+    margin-bottom:      0px;
+}
+#tabularEditor .tabularEditable:invalid {
+    background-color:   #fbb;
+}
+
+
+.toggler {
+    position:           absolute;
+    color:              #555;
+    margin:             0;
+    padding:            0;
+    border:             1px solid #555;
+    width:              16px;
+    height:             16px;
+    z-index:            12;
+}
+.expanded {
+    cursor:             nw-resize;
+    background-color:   #f55;
+}
+.collapsed {
+    cursor:             se-resize;
+    left:               -3px;
+    top:                -3px;
+    background-color:   #fff;
+    box-shadow:         0px 5px 10px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 5px 10px rgba(0, 0, 0, 0.5);
+}
+.collapsed:hover {
+    background-color:   #fa5;
+}
+
+.operators {
+    position:           relative;
+    margin:             0px 5px 5px 5px;
+    top:                0;
+    left:               0;
+}
+
+.operator {
+    margin:             0;
+    line-height:        25px;
+    text-align:         left;
+    cursor:             pointer;
+    white-space:        nowrap;
+    padding-right:      10px;
+    padding-left:       10px;
+    z-index:            8;
+}
+
+.operator:hover {
+    color:              white;
+    background-color:   rgba(128, 128, 128, 0.8);
+    text-decoration:    none;
+    text-shadow:        0px 0px 6px #555;
+}
+
+
+/* is used in the code popover */
+#modalBackground {
+    position:           absolute;
+    top:                0;
+    left:               0;
+    background-color:   rgba(128, 128, 128, 0.3);
+    margin:             0;
+    padding-top:        25%;
+    overflow:           hidden;
+    z-index:            10;
+    text-align:         center;
+    color:              white;
+    font-family:        sans-serif;
+    font-size:          25pt;
+    font-weight:        bold;
+    text-shadow:        0px 3px 5px rgba(0, 0, 0, 0.5);
+}
+
+#urlPopover {
+    position:           relative;
+    border:             2px solid white;
+    top:                5%;
+    margin:             auto;
+    display:            table;
+    background-color:   rgba(249, 248, 247, 0.95);
+    box-shadow:         0px 10px 20px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 10px 20px rgba(0, 0, 0, 0.5);
+    z-index:            11;
+}
+#urlPopover .closebutton {
+    display:            inherit;
+    position:           relative;
+}
+#urlPopover #content {
+    margin-top:         -30px;
+    padding:            0;
+}
+
+
+#cloudBrowserPopover {
+    position:           relative;
+    border:             2px solid white;
+    top:                5%;
+    margin:             auto;
+    display:            table;
+    background-color:   rgba(249, 248, 247, 0.95);
+    box-shadow:         0px 10px 20px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 10px 20px rgba(0, 0, 0, 0.5);
+    z-index:            11;
+}
+#cloudBrowserPopover .closebutton {
+    display:            inherit;
+    position:           relative;
+}
+#cloudBrowserPopover #content {
+    margin:             -10px 10px 20px 10px;
+    padding:            0;
+}
+.modelContainer {
+    text-align:         left;
+    color:              black;
+    border-width:       medium;
+    border-style:       inset;
+    margin:             0px 5px 10px 5px;
+    padding:            8px;
+    cursor:             pointer;
+    height:             140px;
+}
+.modelIcon {
+    background:         #fff;
+    border:             1px solid black;
+    width:              140px;
+    max-height:         140px;
+    clip:               rect(0px,140px,140px,0px);
+    float:              left;
+    clear:              both;
+    margin-right:       10px;
+    box-shadow:         0px 3px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 3px 5px rgba(0, 0, 0, 0.5);
+}
+.externalLink {
+    margin-left:        0.5em;
+}
+.modelName {
+    font:               100% georgia, sans-serif;
+}
+.modelKeywords {
+    font:               italic 75% georgia, sans-serif;
+}
+.modelDescription {
+    margin-top:         8pt;
+    font:               90% georgia, sans-serif;
+}
+.twitter {
+    margin-top:         8pt;
+    font:               italic 90% georgia, sans-serif;
+}
+#keywordFilter {
+    position:           relative;
+    text-align:         center;
+    top:                -20px;
+    font:               10pt georgia, sans-serif;
+}
+.modelDeleteButton  {
+    border-style: hidden;
+    display: block;
+    margin: -8px -2px -20px;
+    padding: 0;
+    background-image:   url(deleteButton.png);
+    position:           relative;
+    left:               -15px;
+    top:                -15px;
+    height:             30px;
+    width:              30px;
+    z-index:            14;
+}
+
+#cloudSaverPopover {
+    position:           relative;
+    border:             2px solid white;
+    top:                5%;
+    margin:             auto;
+    display:            table;
+    background-color:   rgba(249, 248, 247, 0.95);
+    box-shadow:         0px 10px 20px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 10px 20px rgba(0, 0, 0, 0.5);
+    z-index:            11;
+}
+#cloudSaverPopover .closebutton {
+    display:            inherit;
+    position:           relative;
+}
+#cloudSaverPopover #content {
+    margin:             -10px 10px 10px 10px;
+    padding:            0;
+    text-align:         center;
+}
+#cloudSaverPopover #content table {
+    margin-top:         20px;
+    margin-bottom:      20px;
+}
+#cloudSaverPopover #content td {
+    font:               84% georgia, sans-serif;
+    color:              black;
+    padding-top:        5px;
+    text-align:         left;
+}
+#cloudSaverPopover #content img {
+    background:         #fff;
+    border:             1px solid black;
+    box-shadow:         0px 3px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 3px 5px rgba(0, 0, 0, 0.5);
+}
+
+
+/* these classes style the xml representation */
+#codePopover {
+    position:           relative;
+    border:             2px solid black;
+    top:                5%;
+    margin:             auto;
+    display:            table;
+    background-color:   rgba(8, 0, 0, 0.8);
+    box-shadow:         0px 10px 20px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 10px 20px rgba(0, 0, 0, 0.5);
+    z-index:            11;
+}
+#codePopover .closebutton {
+    display:            inherit;
+    position:           relative;
+}
+
+#content {
+    position:           relative;
+    margin-top:         -30px;
+    text-align:         left;
+    font:               125% "Source Code Pro", "Consolas", "Andale Mono", monospace;
+    color:              white;
+    padding:            15px 20px;
+    overflow:           auto;
+    background-color:   transparent;
+    z-index:            12;
+}
+#content .tabs {
+    visibility:         hidden;
+}
+#content .texts {
+    color:              #f55;
+    font-weight:        bold;
+}
+#content .brackets {
+    color:              white;
+}
+#content .elements {
+    color:              #ffffc0;
+}
+#content .attributes {
+    color:              #c0c0c0;
+    font-weight:        bold;
+}
+#content .values {
+    color:              #ffc0c0;
+    font-style:         italic;
+}
+.preformatted, pre {
+    font:               100% "Source Code Pro", "Consolas", "Andale Mono", monospace;
+    color:              white;
+    white-space:        pre;
+}
+
+
+/* Menus and control buttons */
+ul, li, table, tr, td {
+    list-style-type:    none;
+    margin:             0;
+    padding:            0;
+    border:             0;
+    border-collapse:    collapse;
+}
+
+td {
+    padding:            0px 5px 2px 5px;
+}
+
+legend {
+    padding:            0.2em 0.5em;
+    color:              #555;
+    font-size:          90%;
+    text-align:         left;
+}
+
+#header {
+    font:               10pt "Open Sans", "Helvetica Neue", sans-serif;
+    position:           relative;
+    margin:             0;
+    padding:            0;
+    top:                0;
+    left:               0;
+    height:             32px;
+    display:            block;
+    background-color:   rgba(236, 234, 234, 0.9);
+    color:              black;
+    border-bottom:      2px solid #fff;
+    box-shadow:         0px 0px 10px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 0px 10px rgba(0, 0, 0, 0.5);
+    z-index:            7;
+}
+
+/* http://www.ie7nomore.com/fun/menu2/ */
+/* TODO: position using relative instead */
+#actions, #settings, #file, #generate, #about, #defaults, #generation {
+    position:           absolute;
+    display:            block;
+    top:                0px;
+    z-index:            42;
+}
+#file {
+    left:               8px;
+    text-align:         left;
+    z-index:            43;
+}
+#actions {
+    left:               50px;
+    text-align:         left;
+    z-index:            44;
+}
+#generate {
+    left:               110px;
+    text-align:         left;
+    z-index:            45;
+}
+#generation {
+    right:              200px;
+    text-align:         right;
+    z-index:            46;
+}
+#defaults {
+    right:              130px;
+    text-align:         right;
+    z-index:            45;
+}
+#settings {
+    right:              60px;
+    text-align:         right;
+    z-index:            44;
+}
+#about {
+    right:              8px;
+    text-align:         right;
+    z-index:            43;
+}
+#file .fileSelect {
+    width:              200px;
+}
+.menu {
+    margin:             0;
+    cursor:             pointer;
+    list-style:         none;
+    padding-left:       8px;
+    padding-right:      8px;
+    line-height:        32px;
+    display:            inline-block;
+}
+.menu:hover {
+    font-style:         italic;
+}
+.submenu {
+    display:            none;
+    position:           relative;      /* anchor to parent .menu */
+    top:                0; 
+    background-color:   rgba(236, 234, 234, 0.9);
+    white-space:        nowrap;
+    border:             2px solid #fff;
+    box-shadow:         0px 5px 10px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow:    0px 5px 10px rgba(0, 0, 0, 0.5);
+    z-index:            9;
+    /* Constrain height to viewport and enable internal scrolling */
+    max-height:         calc(100vh - 60px); /* header (32px) + breathing room */
+    overflow-y:         auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.menu:hover > .submenu {
+    display:            block;
+}
+.submenu li {
+    height:             25px;
+    line-height:        25px;
+    list-style-type:    none;
+    margin:             0;
+    padding-right:      8px;
+    padding-left:       8px;
+    color:              black;
+    font-style:         normal;
+    text-decoration:    none !important;
+    text-shadow:        none;
+    text-align:         left;
+}
+.submenu a {
+    color:              black;
+}
+.submenu a:hover {
+    color:              white;
+    text-decoration:    none;
+    text-shadow:        0px 0px 6px #555;
+}
+.submenu li:hover {
+    color:              white;
+    background-color:   #b55;
+    text-decoration:    none;
+}
+.submenu select {
+    width:              108px;
+}
+.submenu input {
+    width:              45px;
+}
+.submenu .inputDefaults {
+    width:              104px;
+}
+
+/* =============================================================
+   Touch & small-screen menu enhancements (CSS-only, no markup change)
+   These rules progressively enhance usability on coarse pointers /
+   devices without reliable hover. Desktop hover behavior remains.
+   ------------------------------------------------------------- */
+
+/* (Desktop keeps original 32px line-height; touch overrides inside media query below) */
+
+/* Moderated submenu item sizing (was 34px line-height, now reduced for density) */
+.submenu li {
+    min-height:         30px;         /* balance readability + compactness */
+    line-height:        30px;
+    padding-top:        1px;
+    padding-bottom:     1px;
+}
+
+/* Remove tap highlight flash on mobile WebKit */
+.menu, .submenu li, .submenu a, .submenu input, .submenu select {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* Accessibility: show focus outline if menu items become focusable later */
+.menu:focus {
+    outline:            3px solid #fa5;
+    outline-offset:     2px;
+}
+
+/* On devices that lack hover or have coarse pointer, present menus as
+   stacked, always-expanded panels to avoid hover dependency. */
+@media (hover: none), (any-hover: none), (pointer: coarse) {
+    /* Larger hit areas on touch devices */
+    .menu {
+        line-height:    40px;         /* bigger tap target */
+        padding-left:   12px;
+        padding-right:  12px;
+    }
+    /* Stack top-level menus vertically, full-width container feel */
+    #file, #actions, #generate, #defaults, #settings, #about {
+        display:        block;
+        position:       static;       /* ignore earlier absolute offsets */
+        left:           auto !important;
+        right:          auto !important;
+        top:            auto !important;
+        width:          100%;
+        max-width:      480px;
+        margin:         0 auto 6px auto;
+        background:     #b55;
+        color:          #fff;
+        border-radius:  4px;
+        box-sizing:     border-box;
+    }
+    .menu + .menu { margin-top: 0; }
+    .menu:hover { font-style: normal; } /* hover meaningless on touch */
+
+    /* Always show submenu; convert to block panel */
+    .menu > .submenu {
+        display:        block !important;
+        position:       static;       /* override absolute in desktop mode */
+        background:     rgba(255,255,255,0.92);
+        border:         1px solid #ddd;
+        box-shadow:     none;
+        margin:         0;
+        padding:        4px 0 8px 0;
+        /* Use a taller adaptive max-height on touch; desktop rule already sets viewport constraint */
+        max-height:     min(500px, calc(100vh - 80px));
+        overflow-y:     auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .submenu li {
+        background:     transparent;
+        color:          #222;
+    }
+    .submenu li:hover {
+        background:     #b55;
+        color:          #fff;
+    }
+    /* Larger form controls for touch */
+    .submenu select,
+    .submenu input {
+        font-size:      14px;
+        line-height:    20px;
+    }
+    #listOfDefaults,
+    #listOfSettings { padding-top: 2px; }
+}
+
+/* ============================================================= */
+
+#controls {
+    position:           absolute;
+    top:                0px;
+    left:               50%;
+    margin-left:        -200px; /* half of the actual width */
+    height:             32px;
+    display:            block;
+    z-index:            555;
+}
+#controls .playing {
+    background-color:   #fa5;
+}
+/* Removed empty #controls .pausing ruleset (no differing styles from base state) */
+#controls div {
+    cursor:             pointer;
+    position:           relative;
+    top:                0;
+    display:            inline-block;
+    width:              100px;
+    height:             16px;
+    padding:            8px 0 8px 20px;
+    margin:             0;
+    border:             0;
+    background:         #b55;
+    color:              #fff;
+    text-decoration:    none;
+    text-shadow:        0px 0px 6px #777;
+    -moz-border-radius: 10px 0 / 40px 0;
+    -webkit-border-radius: 10px 0 / 40px 0;
+    border-radius:      10px 0 / 40px 0;
+    -webkit-transition: .5s;
+    -moz-transition:    .5s;
+    transition:         .5s;
+}
+#controls div:hover {
+    background:         #f77;
+}
+#controls div + div {
+    margin-left:        -50px;
+}

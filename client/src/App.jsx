@@ -1,0 +1,315 @@
+import { useState, useEffect } from 'react';
+import { anchorModelsAPI } from './services/api';
+import AnchorEditor from './components/AnchorEditor';
+import './App.css';
+import './styles/AnchorEditor.css';
+
+function App() {
+  const [anchorModels, setAnchorModels] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    xmlContent: '',
+  });
+  const [xmlFile, setXmlFile] = useState(null);
+
+  // Fetch all anchor models
+  const fetchAnchorModels = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await anchorModelsAPI.getAll();
+      setAnchorModels(response.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to fetch anchor models');
+      console.error('Error fetching anchor models:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load anchor models on component mount
+  useEffect(() => {
+    fetchAnchorModels();
+  }, []);
+
+  // Handle file input change
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
+        setError('Please upload a .xml file');
+        return;
+      }
+      setXmlFile(file);
+      setError(null); // Clear any previous errors
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData((prevData) => ({
+          ...prevData,
+          xmlContent: event.target.result,
+        }));
+      };
+      reader.onerror = () => {
+        setError('Failed to read the XML file. Please try again.');
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Handle form input change
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // Handle form submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      setError('Please enter a name for the anchor model');
+      return;
+    }
+
+    if (!formData.xmlContent.trim()) {
+      setError('Please upload or paste XML content');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      await anchorModelsAPI.create({
+        name: formData.name.trim(),
+        xmlContent: formData.xmlContent.trim(),
+      });
+
+      // Reset form and close modal
+      setFormData({ name: '', xmlContent: '' });
+      setXmlFile(null);
+      setShowModal(false);
+      fetchAnchorModels();
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create anchor model';
+      const errorDetails = err.response?.data?.details || '';
+      const fullError = errorDetails ? `${errorMessage}\n\nFull details:\n${errorDetails}` : errorMessage;
+      setError(fullError);
+      console.error('Error creating anchor model:', err);
+      console.error('Full error response:', err.response?.data);
+      console.error('Full error object:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle modal close
+  const handleCloseModal = () => {
+    setFormData({ name: '', xmlContent: '' });
+    setXmlFile(null);
+    setShowModal(false);
+    setError(null);
+  };
+
+  // Handle opening Anchor editor
+  const handleOpenAnchorEditor = () => {
+    // Open the Anchor editor in a new browser tab
+    window.open('/anchor/index.html', 'anchorEditor', 'width=1400,height=900');
+  };
+
+  return (
+    <div className="app">
+      {/* Header */}
+      <header className="header">
+        <div className="header-left">
+          <img src="/logo.svg" alt="Harbor Logo" className="logo" />
+          <h1>Harbor</h1>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Error message */}
+        {error && (
+          <div className="error-message">
+            <div className="error-content">
+              <p><strong>Error:</strong></p>
+              <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: '400px', overflow: 'auto' }}>
+                {typeof error === 'string' ? error : error.message || 'An error occurred'}
+              </pre>
+            </div>
+            <button onClick={() => setError(null)}>Dismiss</button>
+          </div>
+        )}
+
+        {/* Create Button */}
+        <div className="create-button-container">
+          <button 
+            className="create-button"
+            onClick={() => setShowModal(true)}
+          >
+            Create New Anchor Model
+          </button>
+          <button 
+            className="create-button anchor-editor-launch-btn"
+            onClick={handleOpenAnchorEditor}
+          >
+            ✏️ Open Anchor Editor
+          </button>
+        </div>
+
+        {/* Anchor Models Grid */}
+        <div className="models-container">
+          {loading && !anchorModels.length ? (
+            <p className="loading-text">Loading...</p>
+          ) : anchorModels.length === 0 ? (
+            <p className="empty-text">No anchor models found. Create your first anchor model!</p>
+          ) : (
+            <div className="models-grid">
+              {anchorModels.map((model) => (
+                <div key={model._id} className="model-card">
+                  <h3 className="model-name">{model.name}</h3>
+                  <p className="model-version">Version {model.version}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Create New Anchor Model</h2>
+              <button className="modal-close" onClick={handleCloseModal}>×</button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="modal-form">
+              <div className="form-group">
+                <label htmlFor="name">Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter anchor model name"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="xmlFile">Upload XML File</label>
+                <input
+                  type="file"
+                  id="xmlFile"
+                  accept=".xml,text/xml"
+                  onChange={handleFileChange}
+                />
+                {xmlFile && (
+                  <p className="file-info">File selected: {xmlFile.name}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="xmlContent">Or Paste XML Content *</label>
+                <textarea
+                  id="xmlContent"
+                  name="xmlContent"
+                  value={formData.xmlContent}
+                  onChange={handleChange}
+                  placeholder="Paste your XML content here..."
+                  rows="10"
+                  required
+                />
+              </div>
+
+              <div className="form-actions">
+                <button type="submit" disabled={loading} className="submit-button">
+                  {loading ? 'Creating...' : 'Create Anchor Model'}
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleCloseModal} 
+                  disabled={loading}
+                  className="cancel-button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Anchor Editor Name Input Modal */}
+      {showAnchorEditor && !formData.name && (
+        <div className="modal-overlay">
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>New Anchor Model</h2>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (formData.name.trim()) {
+                // Name is set, now show the editor
+              }
+            }} className="modal-form">
+              <div className="form-group">
+                <label htmlFor="modelName">Model Name *</label>
+                <input
+                  type="text"
+                  id="modelName"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Enter anchor model name"
+                  autoFocus
+                />
+              </div>
+
+              <div className="form-actions">
+                <button 
+                  type="button" 
+                  disabled={!formData.name.trim()}
+                  className="submit-button"
+                  onClick={() => {
+                    // Just having the name is enough - the condition below will show the editor
+                  }}
+                >
+                  Continue to Editor
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleCloseAnchorEditor}
+                  className="cancel-button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Anchor Editor Component */}
+      {showAnchorEditor && formData.name && (
+        <AnchorEditor 
+          xmlContent={editorXml}
+          onSave={handleSaveFromEditor}
+          onClose={handleCloseAnchorEditor}
+        />
+      )}
+    </div>
+  );
+}
+
+export default App;
+
