@@ -34,24 +34,11 @@ router.post('/', async (req, res) => {
     res.status(201).json(savedModel);
   } catch (error) {
     console.error('Error creating anchor model:', error);
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Full error:', error);
-    
-    let statusCode = 400;
-    let errorMessage = error.message || 'Failed to create anchor model';
-    
-    // Handle specific Mongoose validation errors
-    if (error.name === 'ValidationError') {
-      errorMessage = `Validation Error: ${Object.values(error.errors).map(e => e.message).join(', ')}`;
-    } else if (error.message && error.message.includes('exceeded')) {
-      statusCode = 413;
-      errorMessage = 'XML content is too large. Maximum size is approximately 5MB.';
-    }
-    
-    res.status(statusCode).json({ 
+    const errorMessage = error.message || 'Failed to create anchor model';
+    const errorDetails = error.stack || '';
+    res.status(400).json({ 
       message: errorMessage,
-      details: error.stack || '' 
+      details: errorDetails 
     });
   }
 });

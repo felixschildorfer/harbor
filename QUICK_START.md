@@ -28,28 +28,29 @@ cd client && npm run dev
 
 ### 3. Open in Browser
 
-Navigate to the port shown in Terminal 2 (e.g., http://localhost:5174)
+Navigate to the port shown in Terminal 2 (e.g., http://localhost:5173) and open the app in your browser.
 
-### 4. Test Anchor Editor
+### 4. Test Anchor Editor (new-tab workflow)
 
-1. Click **"Create Anchor Model"** (or edit existing)
-2. Click **"🔌 Native"** button to toggle to Anchor iframe editor
-3. **Wait** for status to show **"✓ Ready"** (green)
-4. **Draw/Edit** your model in the canvas
-5. **Save**: Click "💾 Save" button
-6. **Verify**: Model appears in the list with saved XML
+There is no embedded iframe editor anymore. When you create or edit an Anchor model, Harbor will open the full Anchor editor in a separate browser tab.
+
+1. Click **"Create Anchor Model"** (or edit an existing model) in the Harbor UI.
+2. The app will open the Anchor editor in a new browser tab at `/anchor/index.html` (e.g., http://localhost:5173/anchor/index.html).
+3. Use the Anchor UI in that tab to draw/edit your model.
+4. Save in the Anchor app. (Currently saving/export integration is manual — you can export XML from Anchor and import it back into Harbor, or save files locally.)
+5. Verify: If you used the Harbor import flow or pasted XML back into Harbor, check the model appears in the list or backend as expected.
 
 ---
 
 ## 🔄 Syncing Anchor Files
 
-After updating the Anchor repository files:
+After updating the Anchor repository files, sync them into the frontend's `public` directory so the editor is served from Harbor's dev server:
 
 ```bash
 cd client && npm run sync-anchor
 ```
 
-This rsync's the latest Anchor files into `client/public/anchor/`.
+This rsyncs the latest Anchor files into `client/public/anchor/` so they are reachable at `/anchor/index.html`.
 
 ---
 
@@ -66,37 +67,16 @@ cd client && node test-anchor-integration.js
 
 | File | Purpose |
 |------|---------|
-| `client/src/components/AnchorEditor.jsx` | React modal with iframe host & postMessage logic |
-| `client/src/styles/AnchorEditor.css` | Styling (status indicators, messages) |
-| `client/public/anchor/index.html` | Anchor editor (with Harbor bridge script) |
-| `scripts/sync-anchor-to-client.sh` | Bash script to sync Anchor files |
-| `client/package.json` | `"sync-anchor"` npm script added |
+| `client/src/components/AnchorEditor.jsx` | Harbor's built-in editor UI (now a textarea-based editor for quick edits) |
+| `client/src/styles/AnchorEditor.css` | Styling for the editor UI |
+| `client/public/anchor/index.html` | Anchor editor (standalone app served from `client/public/anchor/`). Open it directly in a new tab at `/anchor/index.html` |
+| `scripts/sync-anchor-to-client.sh` | Bash script to sync Anchor files into the frontend |
+| `client/package.json` | contains the `"sync-anchor"` npm script to run the sync |
 | `client/README.md` | Full documentation |
 | `ANCHOR_INTEGRATION_COMPLETE.md` | Detailed integration summary |
 
 ---
 
-## 💬 PostMessage Flow
-
-```
-User clicks "Save" in Anchor
-          ↓
-Harbor Bridge wraps Actions.save
-          ↓
-Sends: { type: 'anchor-saved', xml: '...' }
-          ↓
-Host (Harbor) receives via postMessage
-          ↓
-Calls onSave(xml)
-          ↓
-App.jsx → anchorModelsAPI.create({ name, xmlContent: xml })
-          ↓
-Backend: POST /api/items
-          ↓
-Model saved to MongoDB ✅
-```
-
----
 
 ## 🐛 Troubleshooting
 
@@ -111,10 +91,10 @@ Model saved to MongoDB ✅
 
 ## 🚀 What's Next
 
-1. **Manual testing**: Use the UI to create, edit, and save Anchor models
-2. **Backend verification**: Check MongoDB for persisted models
-3. **Deployment**: See `client/README.md` "Build & Deployment" section
-4. **Enhancements**: Add versioning, export formats, collaboration features (optional)
+1. Manual testing: Use the UI to create, edit, and save Anchor models. Use the new-tab Anchor editor at `/anchor/index.html` for drawing.
+2. Backend verification: If you import/export XML between Anchor and Harbor, check the backend (MongoDB) for persisted models.
+3. Deployment: See `client/README.md` "Build & Deployment" section. Ensure `client/public/anchor/` is included in your build/deployment if you want the Anchor app hosted alongside Harbor.
+4. Enhancements: Consider a lightweight export/import endpoint or cross-window messaging (postMessage) if you want automatic save/transfer between the Anchor tab and Harbor in the future.
 
 ---
 

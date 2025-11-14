@@ -1,103 +1,105 @@
 # Setup Guide - Harbor
 
-## Quick Start
+Quick reference for setting up the development environment.
 
-### 1. Install Backend Dependencies
+## Prerequisites
+
+- **Node.js** v18+ (check: `node --version`)
+- **npm** v9+ (check: `npm --version`)
+- **MongoDB** (local or [Atlas Cloud](https://www.mongodb.com/cloud/atlas))
+- **Git**
+
+## Installation
+
+### 1. Clone & Install Dependencies
 
 ```bash
+# Backend
 cd server
 npm install
-```
 
-### 2. Install Frontend Dependencies
-
-```bash
+# Frontend (new terminal)
 cd client
 npm install
 ```
 
-### 3. Configure MongoDB
+### 2. Configure MongoDB
 
-#### Option A: Local MongoDB
+**Local MongoDB (default):**
+- Ensure MongoDB is running: `brew services start mongodb-community` (macOS)
+- `.env` in `server/` is pre-configured for local: `MONGODB_URI=mongodb://localhost:27017/harbor`
 
-1. Make sure MongoDB is installed and running on your machine
-2. Create a `.env` file in the `server` directory:
-   ```bash
-   cd server
-   cp .env.example .env
-   ```
-3. Edit `.env` and set your MongoDB connection:
-   ```
-   MONGODB_URI=mongodb://localhost:27017/harbor
-   PORT=5000
-   NODE_ENV=development
-   ```
-
-#### Option B: MongoDB Atlas (Cloud)
-
-1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a new cluster
-3. Get your connection string
-4. Create a `.env` file in the `server` directory:
-   ```bash
-   cd server
-   cp .env.example .env
-   ```
-5. Update `.env` with your Atlas connection string:
+**Cloud (MongoDB Atlas):**
+1. Create account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Create a cluster and get connection string
+3. Edit `server/.env`: Update `MONGODB_URI` with your Atlas string
    ```
    MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/harbor
-   PORT=5000
-   NODE_ENV=development
    ```
 
-### 4. Start the Backend Server
+### 3. Start Development Servers
 
+**Terminal 1 - Backend:**
 ```bash
 cd server
 npm run dev
+# Output: Server running on http://localhost:5000
 ```
 
-The server will run on http://localhost:5000
-
-### 5. Start the Frontend
-
-Open a new terminal window:
-
+**Terminal 2 - Frontend:**
 ```bash
 cd client
 npm run dev
+# Output: VITE vX.X.X ready in ... ms
+#         ➜ Local: http://localhost:5173
 ```
 
-The frontend will run on http://localhost:5173
+### 4. Open in Browser
 
-## Project Structure
+- Navigate to **http://localhost:5173**
 
-```
-harbor/
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── App.jsx        # Main app component
-│   │   ├── App.css        # App styles
-│   │   └── services/
-│   │       └── api.js     # API service
-│   ├── package.json
-│   └── vite.config.js
-├── server/                 # Express backend
-│   ├── models/
-│   │   └── Item.js        # MongoDB model
-│   ├── routes/
-│   │   └── items.js       # API routes
-│   ├── server.js          # Server entry point
-│   ├── package.json
-│   └── .env               # Environment variables
-└── README.md
+## Environment Variables
+
+### Backend (`server/.env`)
+
+```bash
+MONGODB_URI=mongodb://localhost:27017/harbor  # Local or Atlas connection string
+PORT=5000                                     # Server port
+NODE_ENV=development                          # Environment
 ```
 
-## API Endpoints
+### Frontend
 
-- `GET /api` - Health check
-- `GET /api/items` - Get all items
-- `GET /api/items/:id` - Get item by ID
+- No `.env` file needed
+- API base URL hardcoded: `http://localhost:5000/api` (in `client/src/services/api.js`)
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| **"MongoDB connection failed"** | MongoDB is optional for dev. Backend starts anyway. Start MongoDB or use Atlas. |
+| **"Port 5000 already in use"** | Change `PORT` in `server/.env` or kill the process using port 5000. |
+| **"Port 5173 already in use"** | Vite auto-picks next port. Check terminal output for actual port. |
+| **"Cannot connect to localhost:5000"** | Verify backend is running. Check firewall/CORS settings. |
+| **npm install fails** | Delete `node_modules/` and `package-lock.json`, then re-run `npm install`. |
+
+## Next Steps
+
+- See [README.md](./README.md) for project overview and API documentation
+- See [client/README.md](./client/README.md) for frontend-specific info
+- See [QUICK_START.md](./QUICK_START.md) for quick usage guide
+
+## Tips
+
+- Use `npm run dev` in both directories simultaneously (split terminal)
+- Hot Module Reloading (HMR) is enabled on frontend—changes auto-refresh
+- Backend auto-restarts on file changes (via `--watch` flag)
+- Keep `.env` files out of git (already in `.gitignore`)
+
+---
+
+**Happy developing!** 🚀
+
 - `POST /api/items` - Create new item
 - `PUT /api/items/:id` - Update item
 - `DELETE /api/items/:id` - Delete item

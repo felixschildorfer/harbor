@@ -1,22 +1,25 @@
 # Harbor Client - React + Vite Frontend
 
-A modern React 18 frontend for Harbor, a full-stack CRUD application with Anchor XML editor integration.
+A modern React 18 frontend for Harbor, a full-stack CRUD application for managing Anchor database models.
 
 ## Overview
 
-Harbor is a simple CRUD app that integrates the **Anchor Modeler** (a sophisticated database modeling tool) directly into the React UI via an iframe. Users can create, edit, and save Anchor XML models without leaving the Harbor interface.
+Harbor Client provides a clean UI to:
+- Create and manage Anchor database models
+- Import/export XML
+- Edit XML in a built-in editor
+- Launch the full **Anchor Modeler** in a new browser tab for advanced model design
 
-### Tech Stack
-- **React 18** with Vite (fast dev server & HMR)
-- **Axios** for API client layer
-- **Anchor Modeler** embedded as static HTML/JS in an iframe
-- **CSS** for styling (no additional UI framework)
+**Tech Stack:**
+- React 18 with Vite (hot module reloading)
+- Axios for API communication
+- CSS (no additional UI framework)
 
 ## Quick Start
 
 ### Prerequisites
-- Node.js 16+ and npm
-- Harbor server running on `http://localhost:5000` (API base URL)
+- Node.js 18+ and npm
+- Harbor backend running on `http://localhost:5000`
 
 ### Installation & Development
 
@@ -24,153 +27,149 @@ Harbor is a simple CRUD app that integrates the **Anchor Modeler** (a sophistica
 # Install dependencies
 npm install
 
-# Start dev server (default: http://localhost:5173)
+# Start dev server (usually http://localhost:5173)
 npm run dev
 
-# In another terminal, start the Harbor backend (from repo root)
+# Start backend in another terminal (from repo root)
 cd ../server && npm run dev
 ```
 
-Both services should now be running:
-- **Frontend**: http://localhost:5173 (or auto-assigned port if 5173 is in use)
-- **Backend**: http://localhost:5000
+Both should now be running:
+- **Frontend:** http://localhost:5173
+- **Backend:** http://localhost:5000
 
-## Anchor Editor Integration
-
-The Anchor Modeler is embedded inside the Harbor UI via an iframe at `src/components/AnchorEditor.jsx`. 
-
-### How It Works
-
-1. **Iframe Embedding**: `public/anchor/index.html` is served by Vite at `/anchor/index.html`
-2. **postMessage Protocol**: Host (Harbor) ↔ Iframe (Anchor) communicate via `window.postMessage()`:
-   - **Host → Iframe**: `{ type: 'load-xml', xml: '<schema>...' }`
-   - **Iframe → Host**: `{ type: 'anchor-ready' }`, `{ type: 'anchor-saved', xml: '...' }`
-3. **Save Flow**: When a user saves in Anchor, the XML is sent to the host's `onSave()` callback, which persists it via the API
-
-### Syncing Anchor Files
-
-The Anchor static files are copied from the workspace `../anchor/` directory into `client/public/anchor/` so they can be served by Vite.
-
-**To sync Anchor files after updates**:
-```bash
-# Run from client/ directory
-npm run sync-anchor
-
-# Or manually from the repo root
-bash scripts/sync-anchor-to-client.sh
-```
-
-This command:
-- Copies all Anchor HTML, CSS, JS, and module files
-- Excludes `.git`, `node_modules`, `dist`, and Markdown files
-- Preserves directory structure (e.g., `modules/` subdirectory)
-
-### File Structure
+## Project Structure
 
 ```
 client/
 ├── src/
-│   ├── App.jsx              # Main React component (model list, editor modal)
+│   ├── App.jsx              # Main component: model list, create modal
+│   ├── App.css              # App styling
 │   ├── components/
-│   │   └── AnchorEditor.jsx # Iframe host + postMessage logic
+│   │   └── AnchorEditor.jsx # Built-in XML editor component
 │   ├── services/
-│   │   └── api.js           # Axios instance + itemsAPI methods
+│   │   └── api.js           # Axios API client (centralized API calls)
 │   └── styles/
-│       └── AnchorEditor.css # Editor component styling
+│       └── AnchorEditor.css # Editor component styles
 ├── public/
-│   └── anchor/              # Anchor static files (synced from ../anchor/)
+│   └── anchor/              # Anchor Modeler static files (synced from ../anchor/)
 │       ├── index.html
+│       ├── modules/         # Anchor JS modules
 │       ├── application.css
-│       ├── modules/
-│       └── [other Anchor assets]
-└── package.json
+│       └── [other assets]
+├── package.json
+├── vite.config.js
+└── README.md
 ```
+
+## Features
+
+### Model Management
+- **View All Models:** Displays list of saved Anchor models with version info
+- **Create Model:** Modal form to name and upload/paste XML
+- **Upload XML:** File picker or paste XML content
+- **Built-in Editor:** Quick view and edit XML content
+
+### Anchor Editor Integration
+- **Launch in New Tab:** Click "✏️ Open Anchor Editor" to open Anchor Modeler
+- **Full Functionality:** All Anchor features available (anchors, ties, knots, attributes)
+- **Independent:** Separate browser tab—work without leaving Harbor
+- **Manual Import/Export:** Export XML from Anchor, paste into Harbor form to save
 
 ## API Integration
 
-The client communicates with the backend via `src/services/api.js`:
+All API calls go through `src/services/api.js`:
 
 ```javascript
-// Get all Anchor models
+import { itemsAPI } from './services/api.js';
+
+// Get all models
 const models = await itemsAPI.getAll();
 
-// Create a new model
-const newModel = await itemsAPI.create({
+// Create new model
+const model = await itemsAPI.create({
   name: 'My Model',
-  xmlContent: '<schema>...'
+  xmlContent: '<schema>...</schema>'
 });
 
-// Update an existing model
+// Update model
 await itemsAPI.update(modelId, { name, xmlContent });
 
-// Delete a model
+// Delete model
 await itemsAPI.delete(modelId);
 ```
 
-**Base URL**: `http://localhost:5000/api` (hardcoded in `api.js`)
-
 ## Component: AnchorEditor
 
-Located at `src/components/AnchorEditor.jsx`, this React component:
-- Renders a modal with the embedded Anchor iframe (in "native" mode) or a built-in textarea editor
-- Manages postMessage handshake (`anchor-ready` → `load-xml`)
-- Shows status indicators (connecting, ready, error)
-- Displays save/export confirmations
-- Validates and formats XML (in built-in mode)
+A built-in XML editor component at `src/components/AnchorEditor.jsx`.
 
-### Props
-- `xmlContent` (string): Initial XML to display
-- `onSave(xml)` (function): Called when user saves; receives the updated XML
-- `onClose()` (function): Called to close the editor modal
+**Features:**
+- Syntax highlighting
+- XML validation (basic checks)
+- Format XML (prettier display)
+- Copy to clipboard
+- Save and preview
 
-### UI Features
-- **Toggle Button**: Switch between "Native" (Anchor iframe) and "Built-in" (textarea) editors
-- **Status Indicator**: Shows connection state (⏳ Connecting, ✓ Ready, ✗ Error)
-- **Toolbar**: Validate, Format, Copy, Save buttons
-- **Preview Tab**: In built-in mode, shows an XML tree view
-
-## Build & Deployment
+## Scripts
 
 ```bash
-# Build for production
-npm run build
+# Development
+npm run dev          # Start Vite dev server with HMR
 
-# Preview production build locally
-npm run preview
+# Build & Deploy
+npm run build        # Production build to dist/
+npm run preview      # Preview production build locally
+
+# Code Quality
+npm run lint         # ESLint checks
+
+# Synchronization
+npm run sync-anchor  # Sync Anchor files from ../anchor/ to public/anchor/
 ```
 
-Output is in `dist/`, ready to serve on a static host.
+## Syncing Anchor Files
+
+The Anchor Modeler is served from `public/anchor/`, synced from `../anchor/`.
+
+**To update Anchor files after changes:**
+```bash
+npm run sync-anchor
+```
+
+This rsyncs all Anchor files, preserves directory structure, and excludes `.git`, `node_modules`, `dist`.
+
+## Environment
+
+- **Base URL:** `http://localhost:5000/api` (in `src/services/api.js`)
+- **Dev Server:** Port 5173 (or next available if in use)
+- **CORS:** Backend allows requests from `localhost:5173`
 
 ## Troubleshooting
 
-### Anchor editor shows "Error: Failed to load"
-- Ensure the dev server is running (`npm run dev`)
-- Verify `public/anchor/index.html` exists (run `npm run sync-anchor`)
-- Check browser console for postMessage errors
-- Confirm origin matches: postMessage requires `window.location.origin` match
+| Issue | Solution |
+|-------|----------|
+| **Port 5173 in use** | Vite auto-picks next port (5174, 5175, etc.). Check terminal output. |
+| **API calls fail** | Ensure backend is running (`cd ../server && npm run dev`). Check base URL in `src/services/api.js`. |
+| **Anchor editor tab doesn't load** | Refresh the browser. Check DevTools → Network for 404s on `/anchor/` resources. |
+| **"Cannot find module" errors** | Run `npm install` in `client/` directory. |
+| **Styles not updating** | HMR should work; try hard-refresh (Cmd+Shift+R) or restart dev server. |
 
-### Port 5173 already in use
-- Vite will auto-pick the next available port (e.g., 5174)
-- Update your Anchor editor iframe src if you manually override the port in `vite.config.js`
+## Development Notes
 
-### Models not persisting after save
-- Verify backend is running on `http://localhost:5000`
-- Check network tab in DevTools for `POST /api/items` requests
-- Confirm backend `.env` has `MONGODB_URI` configured (or accepts dev mode without DB)
+### State Management
+- Simple `useState` hooks in `App.jsx`
+- No Redux or Context API (keep it simple)
+- Loading and error states for UX feedback
 
-## Development Workflow
+### Error Handling
+- API errors → displayed in error banner
+- Invalid XML files → rejected with message
+- Network failures → caught and logged to console
 
-1. **Make changes** to React components or Anchor files
-2. **Sync Anchor** if you updated static assets: `npm run sync-anchor`
-3. **Hot reload** happens automatically (HMR)
-4. **Test** in browser at http://localhost:5173
-
-## Contributing
-
-- Follow the existing component structure (monolithic `App.jsx` by design)
-- Use Axios for all API calls (centralized in `api.js`)
-- Leverage CSS classes in `AnchorEditor.css` for styling
-- Update this README if you add significant features
+### Performance
+- Lazy-loaded Anchor Modeler (only loaded when new tab opens)
+- CSS is scoped per component
+- No unnecessary re-renders
 
 ## License
 

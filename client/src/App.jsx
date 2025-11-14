@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { anchorModelsAPI } from './services/api';
-import AnchorEditor from './components/AnchorEditor';
 import './App.css';
-import './styles/AnchorEditor.css';
 
 function App() {
   const [anchorModels, setAnchorModels] = useState([]);
@@ -116,9 +114,8 @@ function App() {
     setError(null);
   };
 
-  // Handle opening Anchor editor
+  // Handler to open Anchor editor in new tab
   const handleOpenAnchorEditor = () => {
-    // Open the Anchor editor in a new browser tab
     window.open('/anchor/index.html', 'anchorEditor', 'width=1400,height=900');
   };
 
@@ -138,10 +135,7 @@ function App() {
         {error && (
           <div className="error-message">
             <div className="error-content">
-              <p><strong>Error:</strong></p>
-              <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: '400px', overflow: 'auto' }}>
-                {typeof error === 'string' ? error : error.message || 'An error occurred'}
-              </pre>
+              <p><strong>Error:</strong> {typeof error === 'string' ? error : error.message || 'An error occurred'}</p>
             </div>
             <button onClick={() => setError(null)}>Dismiss</button>
           </div>
@@ -158,6 +152,7 @@ function App() {
           <button 
             className="create-button anchor-editor-launch-btn"
             onClick={handleOpenAnchorEditor}
+            style={{ marginLeft: '1rem' }}
           >
             ✏️ Open Anchor Editor
           </button>
@@ -248,68 +243,8 @@ function App() {
           </div>
         </div>
       )}
-
-      {/* Anchor Editor Name Input Modal */}
-      {showAnchorEditor && !formData.name && (
-        <div className="modal-overlay">
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>New Anchor Model</h2>
-            </div>
-            
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              if (formData.name.trim()) {
-                // Name is set, now show the editor
-              }
-            }} className="modal-form">
-              <div className="form-group">
-                <label htmlFor="modelName">Model Name *</label>
-                <input
-                  type="text"
-                  id="modelName"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter anchor model name"
-                  autoFocus
-                />
-              </div>
-
-              <div className="form-actions">
-                <button 
-                  type="button" 
-                  disabled={!formData.name.trim()}
-                  className="submit-button"
-                  onClick={() => {
-                    // Just having the name is enough - the condition below will show the editor
-                  }}
-                >
-                  Continue to Editor
-                </button>
-                <button 
-                  type="button" 
-                  onClick={handleCloseAnchorEditor}
-                  className="cancel-button"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Anchor Editor Component */}
-      {showAnchorEditor && formData.name && (
-        <AnchorEditor 
-          xmlContent={editorXml}
-          onSave={handleSaveFromEditor}
-          onClose={handleCloseAnchorEditor}
-        />
-      )}
     </div>
   );
 }
 
 export default App;
-
