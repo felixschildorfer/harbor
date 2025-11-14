@@ -7796,11 +7796,6 @@
         
         // Add save to Harbor functionality
         window.saveToHarbor = async function() {
-            if (!window.HARBOR_MODEL_ID) {
-                alert('No model ID available. Please open a model from Harbor.');
-                return;
-            }
-            
             try {
                 Actions.showLoading('Saving to Harbor...');
                 
@@ -7808,7 +7803,33 @@
                 const serializer = new XMLSerializer();
                 const xmlString = serializer.serializeToString(Model.toXML(false));
                 
-                // Send to Harbor API
+                // If no model ID, create a new model first
+                if (!window.HARBOR_MODEL_ID) {
+                    const createResponse = await fetch(`${API_URL}/anchor-models`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: window.HARBOR_MODEL_NAME || `New Model ${new Date().toLocaleTimeString()}`,
+                            xmlContent: xmlString,
+                        }),
+                    });
+                    
+                    if (!createResponse.ok) {
+                        throw new Error(`Failed to create model: ${createResponse.statusText}`);
+                    }
+                    
+                    const created = await createResponse.json();
+                    window.HARBOR_MODEL_ID = created._id;
+                    window.HARBOR_MODEL_NAME = created.name;
+                    
+                    Actions.hideLoading();
+                    alert(`New model created in Harbor! ID: ${created._id}\nVersion: ${created.version}`);
+                    return;
+                }
+                
+                // Update existing model
                 const response = await fetch(`${API_URL}/anchor-models/${window.HARBOR_MODEL_ID}`, {
                     method: 'PUT',
                     headers: {
@@ -7833,12 +7854,10 @@
             }
         };
         
-        // Show "Save to Harbor" menu option if modelId is present
-        if (modelId) {
-            const harborMenuItem = document.getElementById('saveToHarborMenu');
-            if (harborMenuItem) {
-                harborMenuItem.style.display = 'list-item';
-            }
+        // Show "Save to Harbor" menu option always (for both new and existing models)
+        const harborMenuItem = document.getElementById('saveToHarborMenu');
+        if (harborMenuItem) {
+            harborMenuItem.style.display = 'list-item';
         }
     })();
 

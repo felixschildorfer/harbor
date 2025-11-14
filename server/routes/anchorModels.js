@@ -18,14 +18,17 @@ router.post('/', async (req, res) => {
   try {
     const { name, xmlContent } = req.body;
     
-    if (!name || !xmlContent) {
+    // xmlContent is required, name can be optional (generated timestamp if not provided)
+    if (!xmlContent) {
       return res.status(400).json({ 
-        message: 'Name and XML content are required' 
+        message: 'XML content is required' 
       });
     }
 
+    const modelName = name && name.trim() ? name.trim() : `Model ${new Date().toLocaleString()}`;
+
     const anchorModel = new AnchorModel({
-      name: name.trim(),
+      name: modelName,
       xmlContent: xmlContent.trim(),
       version: 1,
     });
