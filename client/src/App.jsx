@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { anchorModelsAPI } from './services/api';
 import ModelCard from './components/ModelCard';
 import CreateModal from './components/CreateModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import RenameModal from './components/RenameModal';
-import './App.css';
+import Button from './components/Button';
+import { useToast } from './hooks/useToast';
+import { GridSkeleton } from './components/Skeleton';
 
 function App() {
   const [anchorModels, setAnchorModels] = useState([]);
@@ -15,32 +17,33 @@ function App() {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [renameTargetId, setRenameTargetId] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const { addToast, ToastContainer } = useToast();
 
   // Fetch all anchor models
-  const fetchAnchorModels = async () => {
+  const fetchAnchorModels = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await anchorModelsAPI.getAll();
       setAnchorModels(response.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch anchor models');
+      const errorMsg = err.response?.data?.message || 'Failed to fetch anchor models';
+      setError(errorMsg);
+      addToast(errorMsg, 'error');
       console.error('Error fetching anchor models:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast]);
 
   // Load anchor models on component mount
   useEffect(() => {
     fetchAnchorModels();
-  }, []);
+  }, [fetchAnchorModels]);
 
-  // File handling is now managed within CreateModal component
-  // Form handling is now managed within CreateModal component
-
-  // Handle form submit - moved to CreateModal
-  const handleCreateSubmit = async (formData) => {
+  const handleCreateSubmit = useCallback(async (formData) => {
     try {
       setLoading(true);
       setError(null);
@@ -51,107 +54,103 @@ function App() {
       });
 
       setShowModal(false);
-      fetchAnchorModels();
+      addToast(`Created "${formData.name}" successfully`, 'success');
+      await fetchAnchorModels();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to create anchor model';
-      const errorDetails = err.response?.data?.details || '';
-      const fullError = errorDetails ? `${errorMessage}\n\nFull details:\n${errorDetails}` : errorMessage;
-      setError(fullError);
+      const errorMsg = err.response?.data?.message || 'Failed to create anchor model';
+      setError(errorMsg);
+      addToast(errorMsg, 'error');
       console.error('Error creating anchor model:', err);
-      console.error('Full error response:', err.response?.data);
-      console.error('Full error object:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchAnchorModels, addToast]);
 
-  // Handle modal close
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setShowModal(false);
     setError(null);
-  };
+  }, []);
 
-  // Handler to open Anchor editor in new tab
-  const handleOpenAnchorEditor = (modelId = null) => {
+  const handleOpenAnchorEditor = useCallback((modelId = null) => {
     if (modelId) {
       window.open(`/anchor/index.html?modelId=${modelId}`, 'anchorEditor', 'width=1400,height=900');
     } else {
       window.open('/anchor/index.html', 'anchorEditor', 'width=1400,height=900');
     }
-  };
+  }, []);
 
-  // Handler to initiate delete confirmation
-  const handleDeleteClick = (modelId) => {
+  const handleDeleteClick = useCallback((modelId) => {
     setDeleteTargetId(modelId);
     setShowDeleteConfirm(true);
-  };
+  }, []);
 
-  // Handler to close delete confirmation modal
-  const handleCloseDeleteConfirm = () => {
+  const handleCloseDeleteConfirm = useCallback(() => {
     setShowDeleteConfirm(false);
     setDeleteTargetId(null);
-  };
+  }, []);
 
-  // Handler to confirm and execute delete
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!deleteTargetId) return;
 
     try {
       setLoading(true);
       setError(null);
-      await anchorModelsAPI.delete(deleteTargetId);
+      const modelName = anchorModels.find(m => m._id === deleteTargetId)?.name;
       
-      // Remove from list
+      await anchorModelsAPI.delete(deleteTargetId);
       setAnchorModels(anchorModels.filter(m => m._id !== deleteTargetId));
       handleCloseDeleteConfirm();
+      addToast(`Deleted "${modelName}" successfully`, 'success');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete anchor model');
+      const errorMsg = err.response?.data?.message || 'Failed to delete anchor model';
+      setError(errorMsg);
+      addToast(errorMsg, 'error');
       console.error('Error deleting anchor model:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [deleteTargetId, anchorModels, handleCloseDeleteConfirm, addToast]);
 
-  // Handler to initiate rename
-  const handleRenameClick = (modelId) => {
+  const handleRenameClick = useCallback((modelId) => {
     setRenameTargetId(modelId);
     setShowRenameModal(true);
-  };
+  }, []);
 
-  // Handler to close rename modal
-  const handleCloseRenameModal = () => {
+  const handleCloseRenameModal = useCallback(() => {
     setShowRenameModal(false);
     setRenameTargetId(null);
-  };
+  }, []);
 
-  // Handler to confirm and execute rename
-  const handleConfirmRename = async (newName) => {
+  const handleConfirmRename = useCallback(async (newName) => {
     if (!renameTargetId || !newName.trim()) return;
 
     try {
       setLoading(true);
       setError(null);
+      const oldName = anchorModels.find(m => m._id === renameTargetId)?.name;
+      
       await anchorModelsAPI.update(renameTargetId, {
         name: newName.trim(),
       });
       
-      // Update in list
       setAnchorModels(anchorModels.map(m => 
         m._id === renameTargetId 
           ? { ...m, name: newName.trim() }
           : m
       ));
       handleCloseRenameModal();
+      addToast(`Renamed "${oldName}" to "${newName.trim()}"`, 'success');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to rename anchor model');
+      const errorMsg = err.response?.data?.message || 'Failed to rename anchor model';
+      setError(errorMsg);
+      addToast(errorMsg, 'error');
       console.error('Error renaming anchor model:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [renameTargetId, anchorModels, handleCloseRenameModal, addToast]);
 
-  // Handler to export model as XML
-  const handleExportModel = (model) => {
+  const handleExportModel = useCallback((model) => {
     try {
       const xmlContent = model.xmlContent;
       const blob = new Blob([xmlContent], { type: 'application/xml' });
@@ -163,76 +162,157 @@ function App() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      addToast(`Exported "${model.name}"`, 'success');
     } catch (err) {
-      setError('Failed to export model');
+      const errorMsg = 'Failed to export model';
+      setError(errorMsg);
+      addToast(errorMsg, 'error');
       console.error('Error exporting model:', err);
     }
-  };
-
-  // Handler for drag and drop - moved to CreateModal
-  // Kept here as reference for migration purposes
+  }, [addToast]);
 
   return (
-    <div className="app">
-      {/* Header */}
-      <header className="header">
-        <div className="header-left">
-          <img src="/logo.svg" alt="Harbor Logo" className="logo" />
-          <h1>Harbor</h1>
+    <div className="flex h-screen bg-slate-50">
+      {/* Sidebar */}
+      <aside
+        className={`${
+          sidebarOpen ? 'w-64' : 'w-20'
+        } sidebar transition-all duration-base flex flex-col border-r border-slate-200 overflow-hidden`}
+      >
+        {/* Logo */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+          {sidebarOpen && <h1 className="text-xl font-bold text-white">Harbor</h1>}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-1 hover:bg-navy-900 rounded transition-colors"
+            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            {sidebarOpen ? '←' : '→'}
+          </button>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Error message */}
-        {error && (
-          <div className="error-message">
-            <div className="error-content">
-              <p><strong>Error:</strong> {typeof error === 'string' ? error : error.message || 'An error occurred'}</p>
-            </div>
-            <button onClick={() => setError(null)}>Dismiss</button>
+        {/* Navigation Items */}
+        <nav className="flex-1 p-4 space-y-2">
+          <button
+            onClick={() => setShowModal(true)}
+            className="sidebar-item w-full justify-start"
+            aria-label="Create new model"
+          >
+            <span className="text-lg">➕</span>
+            {sidebarOpen && <span>Create Model</span>}
+          </button>
+
+          <button
+            onClick={() => handleOpenAnchorEditor()}
+            className="sidebar-item w-full justify-start"
+            aria-label="Open Anchor Editor"
+          >
+            <span className="text-lg">✏️</span>
+            {sidebarOpen && <span>Editor</span>}
+          </button>
+
+          <button
+            onClick={fetchAnchorModels}
+            className="sidebar-item w-full justify-start"
+            disabled={loading}
+            aria-label="Refresh models"
+          >
+            <span className="text-lg">🔄</span>
+            {sidebarOpen && <span>Refresh</span>}
+          </button>
+        </nav>
+
+        {/* Footer Info */}
+        {sidebarOpen && (
+          <div className="p-4 border-t border-slate-700 text-sm text-slate-300">
+            <p>Models: <span className="font-bold text-ocean-400">{anchorModels.length}</span></p>
           </div>
         )}
+      </aside>
 
-        {/* Create Button */}
-        <div className="create-button-container">
-          <button 
-            className="create-button"
-            onClick={() => setShowModal(true)}
-          >
-            Create New Anchor Model
-          </button>
-          <button 
-            className="create-button anchor-editor-launch-btn"
-            onClick={() => handleOpenAnchorEditor()}
-            style={{ marginLeft: '1rem' }}
-          >
-            ✏️ Open Anchor Editor
-          </button>
-        </div>
-
-        {/* Anchor Models Grid */}
-        <div className="models-container">
-          {loading && !anchorModels.length ? (
-            <p className="loading-text">Loading...</p>
-          ) : anchorModels.length === 0 ? (
-            <p className="empty-text">No anchor models found. Create your first anchor model!</p>
-          ) : (
-            <div className="models-grid">
-              {anchorModels.map((model) => (
-                <ModelCard
-                  key={model._id}
-                  model={model}
-                  onEdit={handleOpenAnchorEditor}
-                  onRename={handleRenameClick}
-                  onDelete={handleDeleteClick}
-                  onExport={handleExportModel}
-                />
-              ))}
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-white border-b border-slate-200 px-8 py-4 shadow-sm">
+          <div className="flex-between">
+            <div>
+              <h2 className="text-2xl font-bold text-navy-950">Anchor Models</h2>
+              <p className="text-sm text-slate-600 mt-1">
+                Manage and edit your anchor models
+              </p>
             </div>
-          )}
+            <div className="flex items-center gap-3">
+              {loading && (
+                <span className="text-sm text-slate-600 flex items-center gap-2">
+                  <span className="spinner" />
+                  Loading...
+                </span>
+              )}
+              <Button
+                variant="primary"
+                onClick={() => setShowModal(true)}
+                ariaLabel="Create new model"
+              >
+                Create New Model
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-8">
+            {/* Error Alert */}
+            {error && (
+              <div className="alert-error mb-6 flex-between">
+                <div>
+                  <p><strong>Error:</strong> {error}</p>
+                </div>
+                <button
+                  onClick={() => setError(null)}
+                  className="text-lg hover:opacity-70"
+                  aria-label="Dismiss error"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            {/* Models Grid or Empty State */}
+            {loading && !anchorModels.length ? (
+              <GridSkeleton count={6} />
+            ) : anchorModels.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4">
+                <div className="text-6xl mb-4">⚓</div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">No Models Yet</h3>
+                <p className="text-slate-600 text-center mb-6 max-w-md">
+                  Create your first anchor model to get started. Upload XML files or paste content directly.
+                </p>
+                <Button
+                  variant="primary"
+                  onClick={() => setShowModal(true)}
+                  ariaLabel="Create first model"
+                >
+                  Create First Model
+                </Button>
+              </div>
+            ) : (
+              <div className="grid-responsive">
+                {anchorModels.map((model) => (
+                  <ModelCard
+                    key={model._id}
+                    model={model}
+                    onEdit={handleOpenAnchorEditor}
+                    onRename={handleRenameClick}
+                    onDelete={handleDeleteClick}
+                    onExport={handleExportModel}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
 
       {/* Modals */}
       <CreateModal
@@ -258,8 +338,12 @@ function App() {
         onConfirm={handleConfirmRename}
         loading={loading}
       />
+
+      {/* Toast Notifications */}
+      <ToastContainer />
     </div>
   );
 }
 
 export default App;
+
