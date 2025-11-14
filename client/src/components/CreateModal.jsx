@@ -5,7 +5,7 @@ import Button from './Button';
  * CreateModal - Modal for creating new anchor models
  * Supports file upload and direct XML content input
  */
-const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError }) => {
+const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, error }) => {
   const [formData, setFormData] = useState({ name: '', xmlContent: '' });
   const [xmlFile, setXmlFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
