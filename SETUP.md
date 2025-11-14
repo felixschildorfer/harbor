@@ -83,6 +83,51 @@ NODE_ENV=development                          # Environment
 | **"Cannot connect to localhost:5000"** | Verify backend is running. Check firewall/CORS settings. |
 | **npm install fails** | Delete `node_modules/` and `package-lock.json`, then re-run `npm install`. |
 
+## Testing Setup
+
+### Backend Tests (Jest + Supertest)
+
+**First-time setup:**
+```bash
+cd server
+npm install  # Installs jest and supertest
+```
+
+**Run tests:**
+```bash
+npm test                 # Run all tests
+npm test -- --watch     # Watch mode for development
+npm test -- --coverage  # Generate coverage report
+```
+
+**Test files:**
+- `server/routes/anchorModels.test.js` - All API endpoint tests
+
+### Frontend Tests (Vitest + React Testing Library)
+
+**First-time setup:**
+```bash
+cd client
+npm install  # Installs vitest, @testing-library/react, etc.
+```
+
+**Run tests:**
+```bash
+npm test              # Run all tests
+npm run test:ui       # Visual test runner in browser
+npm run test:coverage # Generate coverage report
+```
+
+**Test files:**
+- `client/src/App.test.jsx` - Integration tests
+- `client/src/components/*.test.jsx` - Component unit tests
+
+### Test Coverage Goals
+
+- **Backend:** 35+ tests covering all 5 endpoints
+- **Frontend:** 100+ tests covering components, forms, interactions
+- **Target Coverage:** >80% for critical paths
+
 ## Next Steps
 
 - See [README.md](./README.md) for project overview and API documentation

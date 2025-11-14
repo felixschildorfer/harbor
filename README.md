@@ -62,26 +62,118 @@ A full-stack CRUD application for managing Anchor database models. Built with **
 - Get connection string from [Atlas Dashboard](https://www.mongodb.com/cloud/atlas)
 - Update `MONGODB_URI` in `server/.env`
 
-## Features
+## Features & Usage
 
-- ✅ **React 18 + Vite**: Fast HMR development
-- ✅ **Express REST API**: Clean CRUD endpoints
-- ✅ **MongoDB + Mongoose**: Flexible document storage with validation
-- ✅ **Anchor Editor Integration**: Launch full modeling tool in new tab
-- ✅ **XML Import/Export**: Load and save Anchor models as XML
-- ✅ **Built-in Editor**: Quick text editor for XML in Harbor UI
-- ✅ **CORS & Error Handling**: Secure cross-origin requests with detailed messages
-- ✅ **Development Resilience**: Backend starts even if MongoDB is offline
+### Core Features
+- ✅ **Create Anchor Models** - Upload XML files or paste content directly
+- ✅ **View Models** - Grid display with version tracking and metadata
+- ✅ **Edit in Anchor Editor** - Launch full modeling tool in new tab with auto-save
+- ✅ **Update Models** - Modify name and/or XML content with version tracking
+- ✅ **Rename Models** - Quick rename without incrementing version
+- ✅ **Delete Models** - Remove with confirmation protection
+- ✅ **Export Models** - Download as XML files with version in filename
+- ✅ **Drag-and-Drop** - Upload XML files by dragging into create modal
+- ✅ **Model Versioning** - Auto-increment on XML changes, track history
+- ✅ **Comprehensive Testing** - 100+ tests (Jest backend, Vitest frontend)
+
+### Creating Models
+1. Click **"Create New Anchor Model"**
+2. Enter model name (required)
+3. Upload XML file OR paste XML content (required)
+4. Supports drag-and-drop file upload
+5. Click **"Create Anchor Model"** to save
+
+### Editing Models
+1. Click **"✏️ Edit in Anchor"** to open full Anchor Editor
+2. Modify XML in the editor
+3. Save changes - automatically syncs back to Harbor
+4. Version auto-increments on XML changes
+5. List updates with new version number
+
+### Renaming Models
+1. Click **"✏️ Rename"** on model card
+2. Enter new name in modal
+3. Press Enter or click "Rename"
+4. Does NOT increment version number
+
+### Deleting Models
+1. Click **"🗑️ Delete"** on model card
+2. Confirm in dialog
+3. Model removed immediately
+4. Cannot be undone
+
+### Exporting Models
+1. Click **"⬇️ Export"** on model card
+2. File downloads automatically: `ModelName_v<version>.xml`
+3. Contains complete XML content
+4. Can be used externally or imported to another Harbor instance
+
+## Testing
+
+Harbor includes comprehensive test coverage for quality assurance and future maintenance.
+
+### Running Tests
+
+**Backend Tests:**
+```bash
+cd server
+npm install  # First time only
+npm test
+```
+
+**Frontend Tests:**
+```bash
+cd client
+npm install  # First time only
+npm test              # Run tests
+npm run test:ui       # Visual test runner
+npm run test:coverage # Coverage report
+```
+
+### Test Structure
+
+**Backend (Jest + Supertest)** - `server/routes/anchorModels.test.js`
+- 35+ tests covering all 5 API endpoints
+- CRUD operations, validation, error handling
+- Edge cases: invalid IDs, missing fields, malformed JSON
+
+**Frontend (Vitest + React Testing Library)**
+- `client/src/App.test.jsx` - 40+ integration tests
+- `client/src/components/ModelCard.test.jsx` - 10 component tests
+- `client/src/components/CreateModal.test.jsx` - 20 form & validation tests
+- `client/src/components/DeleteConfirmModal.test.jsx` - 10 confirmation tests
+- `client/src/components/RenameModal.test.jsx` - 15 rename interaction tests
+
+Total coverage: **100+ test cases** ensuring reliability and maintainability.
 
 ## API Endpoints
 
 ```
-GET    /api                    # Health check
-GET    /api/items              # List all models (sorted by creation date, newest first)
-POST   /api/items              # Create new model
-GET    /api/items/:id          # Get model by ID
-PUT    /api/items/:id          # Update model
-DELETE /api/items/:id          # Delete model
+GET    /api                          # Health check
+GET    /api/anchor-models            # List all anchor models (sorted by creation date, newest first)
+POST   /api/anchor-models            # Create new anchor model
+GET    /api/anchor-models/:id        # Get anchor model by ID
+PUT    /api/anchor-models/:id        # Update anchor model (name and/or xmlContent)
+DELETE /api/anchor-models/:id        # Delete anchor model
+```
+
+**Request/Response Format:**
+```javascript
+POST /api/anchor-models
+{
+  "name": "Customer Entity",
+  "xmlContent": "<schema>...</schema>"
+}
+
+Response (201 Created):
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "name": "Customer Entity",
+  "xmlContent": "<schema>...</schema>",
+  "version": 1,
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
 ```
 
 ## Project Structure
@@ -90,27 +182,38 @@ DELETE /api/items/:id          # Delete model
 harbor/
 ├── client/                     # React frontend (Vite)
 │   ├── src/
-│   │   ├── App.jsx            # Main component: model list, modals
+│   │   ├── App.jsx            # Main component: model list and CRUD modals
+│   │   ├── App.test.jsx       # Integration tests (~40 tests)
 │   │   ├── components/
-│   │   │   └── AnchorEditor.jsx # Built-in XML editor
+│   │   │   ├── ModelCard.jsx     # Individual model card display
+│   │   │   ├── CreateModal.jsx   # Create/upload modal with drag-drop
+│   │   │   ├── DeleteConfirmModal.jsx  # Delete confirmation
+│   │   │   ├── RenameModal.jsx   # Rename input modal
+│   │   │   └── *.test.jsx      # Component tests
 │   │   ├── services/
-│   │   │   └── api.js         # Axios API client
+│   │   │   └── api.js         # Axios API client for anchor models
 │   │   └── styles/
 │   ├── public/
 │   │   └── anchor/            # Anchor Modeler (static files)
 │   ├── package.json
-│   └── vite.config.js
+│   ├── vite.config.js
+│   └── vitest.config.js       # Vitest configuration for React tests
 ├── server/                     # Express backend + MongoDB
 │   ├── models/
-│   │   └── AnchorModel.js     # Mongoose schema
+│   │   └── AnchorModel.js     # Mongoose schema (name, xmlContent, version)
 │   ├── routes/
-│   │   └── anchorModels.js    # API route handlers
+│   │   ├── anchorModels.js    # API route handlers (CRUD)
+│   │   └── anchorModels.test.js  # Backend tests (~35 tests)
 │   ├── server.js              # Entry point
 │   ├── package.json
-│   └── .env                   # Configuration
-├── scripts/
-│   └── sync-anchor-to-client.sh  # Sync Anchor files to frontend
-└── README.md
+│   ├── jest.config.js         # Jest configuration for backend tests
+│   └── .env                   # Configuration (MONGODB_URI, PORT)
+├── SETUP.md                   # Setup and testing instructions
+├── CODE_REVIEW.md             # Code quality analysis
+├── MERGE_CHECKLIST.md         # Pre-merge verification
+├── README.md                  # This file
+└── scripts/
+    └── sync-anchor-to-client.sh  # Sync Anchor files to frontend
 ```
 
 ## Using the Anchor Modeler
@@ -149,6 +252,13 @@ npm run sync-anchor
 ```
 
 This rsyncs `../anchor/` → `client/public/anchor/`
+
+## Documentation
+
+For additional information:
+- **[SETUP.md](SETUP.md)** - Detailed setup and testing instructions
+- **[CODE_REVIEW.md](CODE_REVIEW.md)** - Code quality analysis and recommendations
+- **[MERGE_CHECKLIST.md](MERGE_CHECKLIST.md)** - Pre-merge verification checklist
 
 ## Troubleshooting
 
