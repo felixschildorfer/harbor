@@ -7465,6 +7465,7 @@
                 <li title="Save model XML definition and settings in browser cache. This is also done automatically when leaving this page." onclick="save(window, true)">Save settings in browser cache...</li>
                 <li title="Save model XML definition to disk." onclick="Actions.saveToDisk(new XMLSerializer().serializeToString(Model.toXML(false)), 'xml')">Save model to local file...</li>
                 <li title="Save model Scalable Vector Graphics file to disk." onclick="Actions.saveToDisk(new XMLSerializer().serializeToString(SVG), 'svg')">Save SVG to local file...</li>
+                <li id="saveToHarborMenu" style="display:none;" title="Save the model to Harbor backend and update the XML content." onclick="window.saveToHarbor()" role="menuitem">Save model to Harbor...</li>
                 <li title="Sends an email with the XML description of the model to a specified recipient." onclick="Actions.createEmail(new XMLSerializer().serializeToString(Model.toXML(false)))">Send model by email...</li>
                 <li title="Loads an example model based on a business managing actors that perform programs on different stages." onclick="Actions.loadFromURL('example.xml', true)">Load example model</li>
             </ul>
@@ -7805,7 +7806,7 @@
                 
                 // Get the current XML from the Anchor Editor
                 const serializer = new XMLSerializer();
-                const xmlString = serializer.serializeToString(Actions.getSavePoint());
+                const xmlString = serializer.serializeToString(Model.toXML(false));
                 
                 // Send to Harbor API
                 const response = await fetch(`${API_URL}/anchor-models/${window.HARBOR_MODEL_ID}`, {
@@ -7832,17 +7833,11 @@
             }
         };
         
-        // Add a button to the UI if modelId is present
+        // Show "Save to Harbor" menu option if modelId is present
         if (modelId) {
-            const saveButtonContainer = document.getElementById('fileLoadStatus');
-            if (saveButtonContainer) {
-                const saveBtn = document.createElement('button');
-                saveBtn.textContent = '💾 Save to Harbor';
-                saveBtn.style.cssText = 'margin-left: 10px; padding: 5px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;';
-                saveBtn.onclick = window.saveToHarbor;
-                saveBtn.onmouseover = () => saveBtn.style.backgroundColor = '#45a049';
-                saveBtn.onmouseout = () => saveBtn.style.backgroundColor = '#4CAF50';
-                saveButtonContainer.parentElement.insertBefore(saveBtn, saveButtonContainer.nextSibling);
+            const harborMenuItem = document.getElementById('saveToHarborMenu');
+            if (harborMenuItem) {
+                harborMenuItem.style.display = 'list-item';
             }
         }
     })();
