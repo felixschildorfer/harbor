@@ -9,6 +9,9 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameTargetId, setRenameTargetId] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     xmlContent: '',
@@ -157,6 +160,46 @@ function App() {
     }
   };
 
+  // Handler to initiate rename
+  const handleRenameClick = (modelId, currentName) => {
+    setRenameTargetId(modelId);
+    setRenameValue(currentName);
+    setShowRenameModal(true);
+  };
+
+  // Handler to close rename modal
+  const handleCloseRenameModal = () => {
+    setShowRenameModal(false);
+    setRenameTargetId(null);
+    setRenameValue('');
+  };
+
+  // Handler to confirm and execute rename
+  const handleConfirmRename = async () => {
+    if (!renameTargetId || !renameValue.trim()) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      await anchorModelsAPI.update(renameTargetId, {
+        name: renameValue.trim(),
+      });
+      
+      // Update in list
+      setAnchorModels(anchorModels.map(m => 
+        m._id === renameTargetId 
+          ? { ...m, name: renameValue.trim() }
+          : m
+      ));
+      handleCloseRenameModal();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to rename anchor model');
+      console.error('Error renaming anchor model:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="app">
       {/* Header */}
@@ -213,6 +256,12 @@ function App() {
                     onClick={() => handleOpenAnchorEditor(model._id)}
                   >
                     ✏️ Edit in Anchor
+                  </button>
+                  <button
+                    className="rename-button"
+                    onClick={() => handleRenameClick(model._id, model.name)}
+                  >
+                    ✏️ Rename
                   </button>
                   <button
                     className="delete-button"
@@ -321,6 +370,54 @@ function App() {
                 disabled={loading}
               >
                 {loading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Modal */}
+      {showRenameModal && (
+        <div className="modal-overlay" onClick={handleCloseRenameModal}>
+          <div className="modal-content rename-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Rename Anchor Model</h2>
+              <button className="modal-close" onClick={handleCloseRenameModal}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="renameInput">New name:</label>
+                <input
+                  type="text"
+                  id="renameInput"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  placeholder="Enter new model name"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleConfirmRename();
+                    }
+                  }}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="cancel-button"
+                onClick={handleCloseRenameModal}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button 
+                className="submit-button"
+                onClick={handleConfirmRename}
+                disabled={loading || !renameValue.trim()}
+              >
+                {loading ? 'Renaming...' : 'Rename'}
               </button>
             </div>
           </div>
