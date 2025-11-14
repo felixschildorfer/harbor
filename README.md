@@ -253,12 +253,43 @@ npm run sync-anchor
 
 This rsyncs `../anchor/` → `client/public/anchor/`
 
+## Development & Branching Strategy
+
+### Main Branch
+The `main` branch contains the latest stable release with all tested features.
+
+### Feature Branches
+
+#### Frontend Redesign (`feature/frontend-redesign`)
+A dedicated branch for modernizing the Harbor UI/UX without affecting stability.
+
+**Redesign Goals:**
+- Modernize visual design and styling
+- Improve layout and navigation
+- Implement React 18 best practices
+- Enhance user experience with better feedback
+- Maintain full backend API compatibility
+
+**Redesign Scope:**
+- Visual design updates
+- Component structure improvements
+- Better form and modal designs
+- Enhanced responsive design
+- Improved accessibility
+
+**What's NOT Included:**
+- API endpoint changes
+- Database schema changes
+- Breaking changes to core functionality
+- Experimental/unfinished features
+
+See [REDESIGN_CHECKLIST.md](REDESIGN_CHECKLIST.md) for detailed redesign tasks and progress tracking.
+
 ## Documentation
 
 For additional information:
 - **[SETUP.md](SETUP.md)** - Detailed setup and testing instructions
-- **[CODE_REVIEW.md](CODE_REVIEW.md)** - Code quality analysis and recommendations
-- **[MERGE_CHECKLIST.md](MERGE_CHECKLIST.md)** - Pre-merge verification checklist
+- **[REDESIGN_CHECKLIST.md](REDESIGN_CHECKLIST.md)** - Frontend redesign tasks and checklist
 
 ## Troubleshooting
 
