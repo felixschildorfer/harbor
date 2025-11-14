@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import Toast from './Toast';
+import Toast from '../components/Toast';
 
 /**
  * Custom hook for managing toast notifications

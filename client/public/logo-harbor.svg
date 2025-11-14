@@ -1,0 +1,30 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for icon -->
+  <circle cx="200" cy="200" r="180" fill="#0A2540" stroke="#1E6091" stroke-width="2"/>
+  
+  <!-- Anchor shape -->
+  <g fill="white">
+    <!-- Anchor ring/top -->
+    <circle cx="200" cy="140" r="35" fill="none" stroke="white" stroke-width="8"/>
+    
+    <!-- Anchor shaft -->
+    <rect x="192" y="170" width="16" height="100" fill="white"/>
+    
+    <!-- Anchor flukes (arms) -->
+    <!-- Left fluke -->
+    <path d="M 200 270 Q 150 300 140 350" stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <!-- Right fluke -->
+    <path d="M 200 270 Q 250 300 260 350" stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
+    
+    <!-- Cross decoration inside ring -->
+    <g transform="translate(200, 140)">
+      <line x1="0" y1="-15" x2="0" y2="15" stroke="white" stroke-width="4" stroke-linecap="round"/>
+      <line x1="-15" y1="0" x2="15" y2="0" stroke="white" stroke-width="4" stroke-linecap="round"/>
+    </g>
+  </g>
+  
+  <!-- Text -->
+  <text x="200" y="380" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#0A2540" text-anchor="middle">
+    Harbor
+  </text>
+</svg>

@@ -117,7 +117,7 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError }
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
         <div
-          className="modal-content w-full max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto animate-slideIn"
+          className="modal-content w-full max-w-4xl min-w-[600px] max-h-[90vh] overflow-y-auto pointer-events-auto animate-slideIn"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -130,15 +130,23 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError }
             </h2>
             <button
               onClick={handleClose}
-              className="text-2xl text-slate-500 hover:text-slate-700 transition-colors"
+              className="px-3 py-1 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors"
               aria-label="Close dialog"
             >
-              ×
+              Close
             </button>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="modal-body space-y-6">
+            {/* Error Message */}
+            {error && (
+              <div className="alert-error">
+                <p className="font-semibold">Error</p>
+                <p>{error}</p>
+              </div>
+            )}
+
             {/* Name Field */}
             <div>
               <label htmlFor="name" className="form-label">

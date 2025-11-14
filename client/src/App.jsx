@@ -181,13 +181,28 @@ function App() {
       >
         {/* Logo */}
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          {sidebarOpen && <h1 className="text-xl font-bold text-white">Harbor</h1>}
+          {sidebarOpen && (
+            <img 
+              src="/logo-harbor.svg" 
+              alt="Harbor" 
+              className="h-8 w-auto"
+              title="Harbor - Anchor Model Manager"
+            />
+          )}
+          {!sidebarOpen && (
+            <img 
+              src="/logo-harbor.svg" 
+              alt="Harbor" 
+              className="h-12 w-auto"
+              title="Harbor"
+            />
+          )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-1 hover:bg-navy-900 rounded transition-colors"
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            {sidebarOpen ? '←' : '→'}
+            {sidebarOpen ? '‹' : '›'}
           </button>
         </div>
 
@@ -198,7 +213,7 @@ function App() {
             className="sidebar-item w-full justify-start"
             aria-label="Create new model"
           >
-            <span className="text-lg">➕</span>
+            <span className="text-lg font-bold">+</span>
             {sidebarOpen && <span>Create Model</span>}
           </button>
 
@@ -207,7 +222,7 @@ function App() {
             className="sidebar-item w-full justify-start"
             aria-label="Open Anchor Editor"
           >
-            <span className="text-lg">✏️</span>
+            <span className="text-lg">✎</span>
             {sidebarOpen && <span>Editor</span>}
           </button>
 
@@ -217,7 +232,7 @@ function App() {
             disabled={loading}
             aria-label="Refresh models"
           >
-            <span className="text-lg">🔄</span>
+            <span className="text-lg">⟲</span>
             {sidebarOpen && <span>Refresh</span>}
           </button>
         </nav>
@@ -283,7 +298,7 @@ function App() {
               <GridSkeleton count={6} />
             ) : anchorModels.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-4">
-                <div className="text-6xl mb-4">⚓</div>
+                <div className="text-6xl mb-4 text-navy-950">⚓</div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">No Models Yet</h3>
                 <p className="text-slate-600 text-center mb-6 max-w-md">
                   Create your first anchor model to get started. Upload XML files or paste content directly.
