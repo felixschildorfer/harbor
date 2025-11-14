@@ -43,5 +43,64 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET anchor model by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const anchorModel = await AnchorModel.findById(req.params.id);
+    if (!anchorModel) {
+      return res.status(404).json({ message: 'Anchor model not found' });
+    }
+    res.json(anchorModel);
+  } catch (error) {
+    console.error('Error fetching anchor model:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PUT update anchor model
+router.put('/:id', async (req, res) => {
+  try {
+    const { name, xmlContent } = req.body;
+    
+    const anchorModel = await AnchorModel.findById(req.params.id);
+    if (!anchorModel) {
+      return res.status(404).json({ message: 'Anchor model not found' });
+    }
+
+    // Update fields if provided
+    if (name !== undefined) {
+      anchorModel.name = name.trim();
+    }
+    if (xmlContent !== undefined) {
+      anchorModel.xmlContent = xmlContent.trim();
+    }
+    
+    // Increment version when XML changes
+    if (xmlContent !== undefined) {
+      anchorModel.version += 1;
+    }
+
+    const updatedModel = await anchorModel.save();
+    res.json(updatedModel);
+  } catch (error) {
+    console.error('Error updating anchor model:', error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// DELETE anchor model
+router.delete('/:id', async (req, res) => {
+  try {
+    const anchorModel = await AnchorModel.findByIdAndDelete(req.params.id);
+    if (!anchorModel) {
+      return res.status(404).json({ message: 'Anchor model not found' });
+    }
+    res.json({ message: 'Anchor model deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting anchor model:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;
 

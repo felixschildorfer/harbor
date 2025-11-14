@@ -115,8 +115,12 @@ function App() {
   };
 
   // Handler to open Anchor editor in new tab
-  const handleOpenAnchorEditor = () => {
-    window.open('/anchor/index.html', 'anchorEditor', 'width=1400,height=900');
+  const handleOpenAnchorEditor = (modelId = null) => {
+    if (modelId) {
+      window.open(`/anchor/index.html?modelId=${modelId}`, 'anchorEditor', 'width=1400,height=900');
+    } else {
+      window.open('/anchor/index.html', 'anchorEditor', 'width=1400,height=900');
+    }
   };
 
   return (
@@ -170,6 +174,12 @@ function App() {
                 <div key={model._id} className="model-card">
                   <h3 className="model-name">{model.name}</h3>
                   <p className="model-version">Version {model.version}</p>
+                  <button
+                    className="edit-button"
+                    onClick={() => handleOpenAnchorEditor(model._id)}
+                  >
+                    ✏️ Edit in Anchor
+                  </button>
                 </div>
               ))}
             </div>

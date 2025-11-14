@@ -7746,7 +7746,106 @@
     })();
     
     // ================================================================
-    // Harbor postMessage Bridge
+    // Harbor API Integration
+    // Load and save XML content with Harbor backend
+
+    (function() {
+        const API_URL = 'http://localhost:5000/api';
+        
+        // Get modelId from query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelId = urlParams.get('modelId');
+        
+        // If modelId is provided, load the model from Harbor
+        if (modelId) {
+            loadModelFromHarbor(modelId);
+        }
+        
+        async function loadModelFromHarbor(id) {
+            try {
+                Actions.showLoading('Loading model from Harbor...');
+                const response = await fetch(`${API_URL}/anchor-models/${id}`);
+                if (!response.ok) {
+                    throw new Error(`Failed to load model: ${response.statusText}`);
+                }
+                const model = await response.json();
+                
+                // Parse and load the XML
+                const xml = new DOMParser().parseFromString(model.xmlContent, 'text/xml');
+                if (xml.getElementsByTagName('parsererror').length) {
+                    throw new Error('Invalid XML in stored model');
+                }
+                
+                Actions.lastLocalFilename = model.name;
+                Actions._applyLoadedModel(xml, false);
+                Actions.hideLoading();
+                
+                // Store modelId for saving
+                window.HARBOR_MODEL_ID = id;
+                window.HARBOR_MODEL_NAME = model.name;
+                
+                // Update title
+                document.title = `Anchor Modeler - ${model.name}`;
+            } catch (err) {
+                console.error('Error loading from Harbor:', err);
+                Actions.hideLoading();
+                alert('Error loading model: ' + err.message);
+            }
+        }
+        
+        // Add save to Harbor functionality
+        window.saveToHarbor = async function() {
+            if (!window.HARBOR_MODEL_ID) {
+                alert('No model ID available. Please open a model from Harbor.');
+                return;
+            }
+            
+            try {
+                Actions.showLoading('Saving to Harbor...');
+                
+                // Get the current XML from the Anchor Editor
+                const serializer = new XMLSerializer();
+                const xmlString = serializer.serializeToString(Actions.getSavePoint());
+                
+                // Send to Harbor API
+                const response = await fetch(`${API_URL}/anchor-models/${window.HARBOR_MODEL_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        xmlContent: xmlString,
+                    }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to save: ${response.statusText}`);
+                }
+                
+                const updated = await response.json();
+                Actions.hideLoading();
+                alert(`Model saved successfully! Version: ${updated.version}`);
+            } catch (err) {
+                console.error('Error saving to Harbor:', err);
+                Actions.hideLoading();
+                alert('Error saving model: ' + err.message);
+            }
+        };
+        
+        // Add a button to the UI if modelId is present
+        if (modelId) {
+            const saveButtonContainer = document.getElementById('fileLoadStatus');
+            if (saveButtonContainer) {
+                const saveBtn = document.createElement('button');
+                saveBtn.textContent = '💾 Save to Harbor';
+                saveBtn.style.cssText = 'margin-left: 10px; padding: 5px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;';
+                saveBtn.onclick = window.saveToHarbor;
+                saveBtn.onmouseover = () => saveBtn.style.backgroundColor = '#45a049';
+                saveBtn.onmouseout = () => saveBtn.style.backgroundColor = '#4CAF50';
+                saveButtonContainer.parentElement.insertBefore(saveBtn, saveButtonContainer.nextSibling);
+            }
+        }
+    })();
 
     </script>
 </body>

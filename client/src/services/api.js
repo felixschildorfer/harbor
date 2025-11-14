@@ -14,8 +14,17 @@ export const anchorModelsAPI = {
   // Get all anchor models
   getAll: () => api.get('/anchor-models'),
   
+  // Get anchor model by ID
+  getById: (id) => api.get(`/anchor-models/${id}`),
+  
   // Create anchor model
   create: (data) => api.post('/anchor-models', data),
+  
+  // Update anchor model
+  update: (id, data) => api.put(`/anchor-models/${id}`, data),
+  
+  // Delete anchor model
+  delete: (id) => api.delete(`/anchor-models/${id}`),
 };
 
 export default api;
