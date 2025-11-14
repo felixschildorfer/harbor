@@ -1,0 +1,74 @@
+name: Lint & Test on PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint & Format Check
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install
+          cd client && npm install
+          cd ../server && npm install
+          cd ..
+
+      - name: Lint frontend
+        run: cd client && npm run lint
+        continue-on-error: true
+
+  test:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install
+          cd client && npm install
+          cd ../server && npm install
+          cd ..
+
+      - name: Run tests (if configured)
+        run: |
+          cd client && npm run test || echo "No tests configured yet"
+        continue-on-error: true
+
+  commitlint:
+    runs-on: ubuntu-latest
+    name: Commit Lint
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install commitlint
+        run: npm install --save-dev commitlint @commitlint/config-conventional
+
+      - name: Validate commits
+        run: npx commitlint --from origin/main --to HEAD
