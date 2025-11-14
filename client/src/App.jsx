@@ -200,6 +200,76 @@ function App() {
     }
   };
 
+  // Handler to export model as XML
+  const handleExportModel = (model) => {
+    try {
+      const xmlContent = model.xmlContent;
+      const blob = new Blob([xmlContent], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${model.name.replace(/\s+/g, '_')}_v${model.version}.xml`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError('Failed to export model');
+      console.error('Error exporting model:', err);
+    }
+  };
+
+  // Handler for drag and drop
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+    const dropZone = document.querySelector('.modal-form');
+    if (dropZone) {
+      dropZone.classList.add('drag-over');
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const dropZone = document.querySelector('.modal-form');
+    if (dropZone) {
+      dropZone.classList.remove('drag-over');
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const dropZone = document.querySelector('.modal-form');
+    if (dropZone) {
+      dropZone.classList.remove('drag-over');
+    }
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
+        setError('Please drop a .xml file');
+        return;
+      }
+      setXmlFile(file);
+      setError(null);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData((prevData) => ({
+          ...prevData,
+          xmlContent: event.target.result,
+        }));
+      };
+      reader.onerror = () => {
+        setError('Failed to read the dropped XML file. Please try again.');
+      };
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <div className="app">
       {/* Header */}
@@ -258,6 +328,12 @@ function App() {
                     ✏️ Edit in Anchor
                   </button>
                   <button
+                    className="export-button"
+                    onClick={() => handleExportModel(model)}
+                  >
+                    ⬇️ Export
+                  </button>
+                  <button
                     className="rename-button"
                     onClick={() => handleRenameClick(model._id, model.name)}
                   >
@@ -285,7 +361,13 @@ function App() {
               <button className="modal-close" onClick={handleCloseModal}>×</button>
             </div>
             
-            <form onSubmit={handleSubmit} className="modal-form">
+            <form 
+              onSubmit={handleSubmit} 
+              className="modal-form"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <div className="form-group">
                 <label htmlFor="name">Name *</label>
                 <input

@@ -273,6 +273,33 @@ body {
   cursor: not-allowed;
 }
 
+/* Export Button */
+.export-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.export-button:hover {
+  background-color: #45a049;
+}
+
+.export-button:active {
+  background-color: #3d8b40;
+}
+
+.export-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 /* Modal */
 .modal-overlay {
   position: fixed;
@@ -379,6 +406,13 @@ body {
 
 .modal-form {
   padding: 30px;
+}
+
+.modal-form.drag-over {
+  background-color: #f0f8ff;
+  border: 2px dashed #2196F3;
+  border-radius: 4px;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
 .form-group {
