@@ -7,6 +7,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     xmlContent: '',
@@ -123,6 +125,38 @@ function App() {
     }
   };
 
+  // Handler to initiate delete confirmation
+  const handleDeleteClick = (modelId) => {
+    setDeleteTargetId(modelId);
+    setShowDeleteConfirm(true);
+  };
+
+  // Handler to close delete confirmation modal
+  const handleCloseDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+    setDeleteTargetId(null);
+  };
+
+  // Handler to confirm and execute delete
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      await anchorModelsAPI.delete(deleteTargetId);
+      
+      // Remove from list
+      setAnchorModels(anchorModels.filter(m => m._id !== deleteTargetId));
+      handleCloseDeleteConfirm();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete anchor model');
+      console.error('Error deleting anchor model:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="app">
       {/* Header */}
@@ -179,6 +213,12 @@ function App() {
                     onClick={() => handleOpenAnchorEditor(model._id)}
                   >
                     ✏️ Edit in Anchor
+                  </button>
+                  <button
+                    className="delete-button"
+                    onClick={() => handleDeleteClick(model._id)}
+                  >
+                    🗑️ Delete
                   </button>
                 </div>
               ))}
@@ -250,6 +290,39 @@ function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={handleCloseDeleteConfirm}>
+          <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Delete Anchor Model</h2>
+              <button className="modal-close" onClick={handleCloseDeleteConfirm}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <p>Are you sure you want to delete this anchor model? This action cannot be undone.</p>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="cancel-button"
+                onClick={handleCloseDeleteConfirm}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button 
+                className="delete-confirm-button"
+                onClick={handleConfirmDelete}
+                disabled={loading}
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

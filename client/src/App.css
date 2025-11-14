@@ -221,6 +221,32 @@ body {
   background-color: #1565C0;
 }
 
+.delete-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f;
+}
+
+.delete-button:active {
+  background-color: #c62828;
+}
+
+.delete-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 /* Modal */
 .modal-overlay {
   position: fixed;
@@ -279,6 +305,46 @@ body {
 .modal-close:hover {
   background-color: #f5f5f5;
   color: #333;
+}
+
+.delete-modal {
+  max-width: 400px;
+}
+
+.modal-body {
+  padding: 30px;
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 15px;
+  padding: 20px 30px;
+  border-top: 1px solid #ddd;
+  justify-content: flex-end;
+}
+
+.delete-confirm-button {
+  padding: 10px 24px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.delete-confirm-button:hover {
+  background-color: #d32f2f;
+}
+
+.delete-confirm-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 .modal-form {
