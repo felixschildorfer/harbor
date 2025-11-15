@@ -7335,7 +7335,28 @@
 
             // load url or previous model, if any
             var model;
-            if(PARAMETERS.gist) {
+            // If 'fresh' parameter is present, start with minimal single anchor setup
+            if(PARAMETERS.fresh) {
+                // Clear the stored model from localStorage
+                window.localStorage.removeItem("model");
+                window.localStorage.removeItem("modelId");
+                window.localStorage.removeItem("modelName");
+                window.localStorage.removeItem("modelScope");
+                window.localStorage.removeItem("modelKeywords");
+                window.localStorage.removeItem("modelDescription");
+                Model.setupMinimal(false);
+            }
+            else if(PARAMETERS.new) {
+                // Clear the stored model from localStorage
+                window.localStorage.removeItem("model");
+                window.localStorage.removeItem("modelId");
+                window.localStorage.removeItem("modelName");
+                window.localStorage.removeItem("modelScope");
+                window.localStorage.removeItem("modelKeywords");
+                window.localStorage.removeItem("modelDescription");
+                Actions.loadFromURL('example.xml');
+            }
+            else if(PARAMETERS.gist) {
                 Actions.loadModelFromGist(PARAMETERS.gist);
             }
             /*

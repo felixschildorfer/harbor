@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import Button from './Button';
 
 /**
  * CreateModal - Modal for creating new anchor models
@@ -109,47 +108,48 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
     <>
       {/* Backdrop */}
       <div
-        className="modal-backdrop"
+        className="fixed inset-0 bg-black/30 z-40"
         onClick={handleClose}
         role="presentation"
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="modal-content w-full max-w-4xl min-w-[600px] max-h-[90vh] overflow-y-auto pointer-events-auto animate-slideIn"
+          className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
         >
           {/* Header */}
-          <div className="modal-header flex-between">
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 flex-shrink-0">
             <h2 id="modal-title" className="text-2xl font-bold text-navy-950">
               Create New Anchor Model
             </h2>
             <button
               onClick={handleClose}
-              className="px-3 py-1 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors"
+              className="text-slate-400 hover:text-slate-600 text-2xl leading-none disabled:opacity-50"
               aria-label="Close dialog"
+              disabled={loading}
             >
-              Close
+              ×
             </button>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="modal-body space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-grow overflow-y-auto">
             {/* Error Message */}
             {error && (
-              <div className="alert-error">
-                <p className="font-semibold">Error</p>
-                <p>{error}</p>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="font-semibold text-red-800">Error</p>
+                <p className="text-red-700">{error}</p>
               </div>
             )}
 
             {/* Name Field */}
             <div>
-              <label htmlFor="name" className="form-label">
+              <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
                 Model Name *
               </label>
               <input
@@ -160,14 +160,14 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
                 onChange={handleChange}
                 required
                 placeholder="Enter anchor model name"
-                className="form-input"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent"
                 disabled={loading}
               />
             </div>
 
             {/* File Upload Area */}
             <div>
-              <label htmlFor="xmlFile" className="form-label">
+              <label htmlFor="xmlFile" className="block text-sm font-medium text-slate-700 mb-1">
                 Upload XML File (or paste below)
               </label>
               <div
@@ -202,7 +202,7 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
 
             {/* XML Content Field */}
             <div>
-              <label htmlFor="xmlContent" className="form-label">
+              <label htmlFor="xmlContent" className="block text-sm font-medium text-slate-700 mb-1">
                 Or Paste XML Content *
               </label>
               <textarea
@@ -213,31 +213,45 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
                 required
                 placeholder="Paste your XML content here..."
                 rows="8"
-                className="form-textarea"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent font-mono text-sm"
                 disabled={loading}
               />
             </div>
-
-            {/* Actions */}
-            <div className="modal-footer bg-slate-50 -m-6 p-6 flex gap-3 justify-end">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleClose}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                loading={loading}
-                disabled={loading}
-              >
-                {loading ? 'Creating...' : 'Create Model'}
-              </Button>
-            </div>
           </form>
+
+          {/* Footer */}
+          <div className="flex gap-3 justify-end p-6 border-t border-slate-200 bg-slate-50 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={loading}
+              className="min-w-24 px-4 py-2.5 text-slate-700 border border-slate-300 rounded-md hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={loading}
+              style={{
+                backgroundColor: '#1e6091',
+                color: 'white',
+                border: '2px solid #0f3a5d',
+                minWidth: '96px',
+                padding: '10px 16px',
+                borderRadius: '6px',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.5 : 1,
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#154a73')}
+              onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#1e6091')}
+            >
+              {loading ? 'Creating...' : 'Create Model'}
+            </button>
+          </div>
         </div>
       </div>
     </>

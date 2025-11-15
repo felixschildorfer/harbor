@@ -72,8 +72,8 @@ function App() {
   }, []);
 
   const handleOpenNewFile = useCallback(() => {
-    // Open Anchor Editor without modelId for new file
-    window.open('/anchor/index.html', 'anchorEditor', 'width=1400,height=900');
+    // Open Anchor Editor without modelId for new file, with fresh=true to force minimal setup
+    window.open(`/anchor/index.html?fresh=true`, 'anchorEditor', 'width=1400,height=900');
   }, []);
 
   const handleEditModel = useCallback((modelId) => {
@@ -215,19 +215,19 @@ function App() {
           <button
             onClick={() => setShowModal(true)}
             className="sidebar-item w-full justify-start"
-            aria-label="Create new model"
+            aria-label="Upload model"
           >
             <span className="text-lg font-bold">+</span>
-            {sidebarOpen && <span>Create Model</span>}
+            {sidebarOpen && <span>Upload Model</span>}
           </button>
 
           <button
             onClick={() => handleOpenNewFile()}
             className="sidebar-item w-full justify-start"
-            aria-label="Open Anchor Editor with new file"
+            aria-label="Create new model in editor"
           >
             <span className="text-lg">✎</span>
-            {sidebarOpen && <span>Editor</span>}
+            {sidebarOpen && <span>Create Model</span>}
           </button>
 
           <button
