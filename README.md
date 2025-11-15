@@ -81,7 +81,7 @@ A full-stack CRUD application for managing Anchor database models. Built with **
 2. Enter model name (required)
 3. Upload XML file OR paste XML content (required)
 4. Supports drag-and-drop file upload
-5. Click **"Create Model"** button to save
+5. Click **"Upload Model"** button in the modal to save
 
 ### Creating New Models in Editor
 1. Click **"Create Model"** button in sidebar

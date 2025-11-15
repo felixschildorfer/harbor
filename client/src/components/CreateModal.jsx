@@ -249,7 +249,7 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
               onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#154a73')}
               onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#1e6091')}
             >
-              {loading ? 'Creating...' : 'Create Model'}
+              {loading ? 'Uploading...' : 'Upload Model'}
             </button>
           </div>
         </div>
