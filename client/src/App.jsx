@@ -4,6 +4,8 @@ import ModelCard from './components/ModelCard';
 import CreateModal from './components/CreateModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import RenameModal from './components/RenameModal';
+import VersionHistory from './components/VersionHistory';
+import VersionComparison from './components/VersionComparison';
 import Button from './components/Button';
 import { useToast } from './hooks/useToast';
 import { GridSkeleton } from './components/Skeleton';
@@ -17,6 +19,11 @@ function App() {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [renameTargetId, setRenameTargetId] = useState(null);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [versionHistoryModelId, setVersionHistoryModelId] = useState(null);
+  const [showVersionComparison, setShowVersionComparison] = useState(false);
+  const [versionComparisonModelId, setVersionComparisonModelId] = useState(null);
+  const [versionComparisonVersions, setVersionComparisonVersions] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const { addToast, ToastContainer } = useToast();
@@ -175,6 +182,38 @@ function App() {
     }
   }, [addToast]);
 
+  const handleViewVersionHistory = useCallback((modelId) => {
+    setVersionHistoryModelId(modelId);
+    setShowVersionHistory(true);
+  }, []);
+
+  const handleCloseVersionHistory = useCallback(() => {
+    setShowVersionHistory(false);
+    setVersionHistoryModelId(null);
+  }, []);
+
+  const handleVersionHistoryRollback = useCallback(async () => {
+    await fetchAnchorModels();
+  }, [fetchAnchorModels]);
+
+  const handleViewVersionComparison = useCallback(async (modelId) => {
+    try {
+      const response = await anchorModelsAPI.getVersionHistory(modelId);
+      setVersionComparisonModelId(modelId);
+      setVersionComparisonVersions(response.data);
+      setShowVersionComparison(true);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to load version history';
+      addToast(errorMsg, 'error');
+    }
+  }, [addToast]);
+
+  const handleCloseVersionComparison = useCallback(() => {
+    setShowVersionComparison(false);
+    setVersionComparisonModelId(null);
+    setVersionComparisonVersions([]);
+  }, []);
+
   return (
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
@@ -325,6 +364,8 @@ function App() {
                     onRename={handleRenameClick}
                     onDelete={handleDeleteClick}
                     onExport={handleExportModel}
+                    onVersionHistory={handleViewVersionHistory}
+                    onVersionComparison={handleViewVersionComparison}
                   />
                 ))}
               </div>
@@ -357,6 +398,22 @@ function App() {
         onConfirm={handleConfirmRename}
         loading={loading}
       />
+
+      {showVersionHistory && versionHistoryModelId && (
+        <VersionHistory
+          modelId={versionHistoryModelId}
+          onClose={handleCloseVersionHistory}
+          onRollback={handleVersionHistoryRollback}
+        />
+      )}
+
+      {showVersionComparison && versionComparisonModelId && versionComparisonVersions.length > 0 && (
+        <VersionComparison
+          modelId={versionComparisonModelId}
+          versions={versionComparisonVersions}
+          onClose={handleCloseVersionComparison}
+        />
+      )}
 
       {/* Toast Notifications */}
       <ToastContainer />

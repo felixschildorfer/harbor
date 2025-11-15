@@ -5,7 +5,13 @@ import React, { useState, useCallback } from 'react';
  * Supports file upload and direct XML content input
  */
 const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, error }) => {
-  const [formData, setFormData] = useState({ name: '', xmlContent: '' });
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    xmlContent: '',
+    author: '',
+    description: '',
+    tags: ''
+  });
   const [xmlFile, setXmlFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -83,12 +89,20 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
     }
 
     try {
+      const tagsArray = formData.tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag);
+
       await onSubmit({
         name: formData.name.trim(),
         xmlContent: formData.xmlContent.trim(),
+        author: formData.author.trim() || 'Unknown',
+        description: formData.description.trim() || '',
+        tags: tagsArray,
       });
 
-      setFormData({ name: '', xmlContent: '' });
+      setFormData({ name: '', xmlContent: '', author: '', description: '', tags: '' });
       setXmlFile(null);
     } catch (err) {
       console.error('Error submitting form:', err);
@@ -96,7 +110,7 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
   }, [formData, onSubmit, setError]);
 
   const handleClose = useCallback(() => {
-    setFormData({ name: '', xmlContent: '' });
+    setFormData({ name: '', xmlContent: '', author: '', description: '', tags: '' });
     setXmlFile(null);
     setError(null);
     onClose();
@@ -160,6 +174,57 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
                 onChange={handleChange}
                 required
                 placeholder="Enter anchor model name"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent"
+                disabled={loading}
+              />
+            </div>
+
+            {/* Author Field */}
+            <div>
+              <label htmlFor="author" className="block text-sm font-medium text-slate-700 mb-1">
+                Author
+              </label>
+              <input
+                type="text"
+                id="author"
+                name="author"
+                value={formData.author}
+                onChange={handleChange}
+                placeholder="Enter author name (optional)"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent"
+                disabled={loading}
+              />
+            </div>
+
+            {/* Description Field */}
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Enter model description (optional)"
+                rows="3"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent text-sm"
+                disabled={loading}
+              />
+            </div>
+
+            {/* Tags Field */}
+            <div>
+              <label htmlFor="tags" className="block text-sm font-medium text-slate-700 mb-1">
+                Tags (comma-separated)
+              </label>
+              <input
+                type="text"
+                id="tags"
+                name="tags"
+                value={formData.tags}
+                onChange={handleChange}
+                placeholder="e.g. production, v1, database (optional)"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent"
                 disabled={loading}
               />

@@ -8,8 +8,10 @@ import ContextMenu from './ContextMenu';
  * @param {Function} onRename - Callback to rename model
  * @param {Function} onDelete - Callback to delete model
  * @param {Function} onExport - Callback to export model
+ * @param {Function} onVersionHistory - Callback to view version history
+ * @param {Function} onVersionComparison - Callback to compare versions
  */
-const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport }) => {
+const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport, onVersionHistory, onVersionComparison }) => {
   const handleEdit = React.useCallback(() => {
     onEdit(model._id);
   }, [model._id, onEdit]);
@@ -26,6 +28,14 @@ const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport }) =
     onExport(model);
   }, [model, onExport]);
 
+  const handleVersionHistory = React.useCallback(() => {
+    onVersionHistory(model._id);
+  }, [model._id, onVersionHistory]);
+
+  const handleVersionComparison = React.useCallback(() => {
+    onVersionComparison(model._id);
+  }, [model._id, onVersionComparison]);
+
   const menuItems = [
     {
       label: 'Edit',
@@ -34,6 +44,14 @@ const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport }) =
     {
       label: 'Rename',
       onClick: handleRename,
+    },
+    {
+      label: 'Version History',
+      onClick: handleVersionHistory,
+    },
+    {
+      label: 'Compare Versions',
+      onClick: handleVersionComparison,
     },
     {
       label: 'Export',
@@ -70,7 +88,34 @@ const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport }) =
                 <strong>Updated:</strong> {new Date(model.updatedAt).toLocaleString()}
               </p>
             )}
+            {model.author && model.author !== 'Unknown' && (
+              <p className="text-sm text-slate-600">
+                <strong>Author:</strong> {model.author}
+              </p>
+            )}
+            {model.description && (
+              <p className="text-sm text-slate-600 italic" title={model.description}>
+                <strong>Description:</strong> {model.description.substring(0, 50)}
+                {model.description.length > 50 ? '...' : ''}
+              </p>
+            )}
           </div>
+
+          {/* Tags */}
+          {model.tags && model.tags.length > 0 && (
+            <div className="mb-4">
+              <div className="flex flex-wrap gap-2">
+                {model.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-1 text-xs bg-ocean-100 text-ocean-800 rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* XML Preview */}
           {model.xmlContent && (

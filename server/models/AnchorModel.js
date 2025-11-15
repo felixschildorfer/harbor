@@ -11,6 +11,20 @@ const anchorModelSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    description: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    author: {
+      type: String,
+      trim: true,
+      default: 'Unknown',
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
     version: {
       type: Number,
       required: true,
