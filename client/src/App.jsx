@@ -180,20 +180,20 @@ function App() {
         } sidebar transition-all duration-base flex flex-col border-r border-slate-200 overflow-hidden`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+        <div className="flex items-center justify-center p-2 bg-white border-b border-slate-200">
           {sidebarOpen && (
             <img 
-              src="/logo-harbor.svg" 
+              src="/harbor-logo.png" 
               alt="Harbor" 
-              className="h-8 w-auto"
+              className="h-32 w-auto"
               title="Harbor - Anchor Model Manager"
             />
           )}
           {!sidebarOpen && (
             <img 
-              src="/logo-harbor.svg" 
+              src="/harbor-logo.png" 
               alt="Harbor" 
-              className="h-12 w-auto"
+              className="h-40 w-auto"
               title="Harbor"
             />
           )}
