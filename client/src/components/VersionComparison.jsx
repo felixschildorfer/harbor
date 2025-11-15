@@ -69,23 +69,23 @@ const VersionComparison = ({ modelId, versions, onClose }) => {
     }
 
     const entityTypes = [
-      { key: 'anchors', label: 'Anchors', icon: '⚓' },
-      { key: 'attributes', label: 'Attributes', icon: '📝' },
-      { key: 'ties', label: 'Ties', icon: '🔗' },
-      { key: 'nexus', label: 'Nexus', icon: '🔀' },
-      { key: 'knots', label: 'Knots', icon: '🔴' },
+      { key: 'anchors', label: 'Anchors' },
+      { key: 'attributes', label: 'Attributes' },
+      { key: 'ties', label: 'Ties' },
+      { key: 'nexus', label: 'Nexus' },
+      { key: 'knots', label: 'Knots' },
     ];
 
     return (
       <div className="entity-container">
-        {entityTypes.map(({ key, label: entityLabel, icon }) => {
+        {entityTypes.map(({ key, label: entityLabel }) => {
           const items = entities[key] || [];
           if (items.length === 0) return null;
 
           return (
             <div key={key} className="entity-section">
               <h4 className="entity-type-header">
-                {icon} {entityLabel} ({items.length})
+                {entityLabel} ({items.length})
               </h4>
               <ul className="entity-list">
                 {items.map((item, idx) => {
