@@ -71,11 +71,15 @@ function App() {
     setError(null);
   }, []);
 
-  const handleOpenAnchorEditor = useCallback((modelId = null) => {
+  const handleOpenNewFile = useCallback(() => {
+    // Open Anchor Editor without modelId for new file
+    window.open('/anchor/index.html', 'anchorEditor', 'width=1400,height=900');
+  }, []);
+
+  const handleEditModel = useCallback((modelId) => {
+    // Open Anchor Editor with modelId to load and edit existing model
     if (modelId) {
       window.open(`/anchor/index.html?modelId=${modelId}`, 'anchorEditor', 'width=1400,height=900');
-    } else {
-      window.open('/anchor/index.html', 'anchorEditor', 'width=1400,height=900');
     }
   }, []);
 
@@ -218,9 +222,9 @@ function App() {
           </button>
 
           <button
-            onClick={() => handleOpenAnchorEditor()}
+            onClick={() => handleOpenNewFile()}
             className="sidebar-item w-full justify-start"
-            aria-label="Open Anchor Editor"
+            aria-label="Open Anchor Editor with new file"
           >
             <span className="text-lg">✎</span>
             {sidebarOpen && <span>Editor</span>}
@@ -317,7 +321,7 @@ function App() {
                   <ModelCard
                     key={model._id}
                     model={model}
-                    onEdit={handleOpenAnchorEditor}
+                    onEdit={handleEditModel}
                     onRename={handleRenameClick}
                     onDelete={handleDeleteClick}
                     onExport={handleExportModel}
