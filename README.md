@@ -77,36 +77,47 @@ A full-stack CRUD application for managing Anchor database models. Built with **
 - ✅ **Comprehensive Testing** - 100+ tests (Jest backend, Vitest frontend)
 
 ### Creating Models
-1. Click **"Create New Anchor Model"**
+1. Click **"Upload Model"** button in sidebar
 2. Enter model name (required)
 3. Upload XML file OR paste XML content (required)
 4. Supports drag-and-drop file upload
-5. Click **"Create Anchor Model"** to save
+5. Click **"Create Model"** button to save
+
+### Creating New Models in Editor
+1. Click **"Create Model"** button in sidebar
+2. Anchor Modeler opens with a single blank anchor
+3. Design your model visually
+4. Save to Harbor when ready
 
 ### Editing Models
-1. Click **"✏️ Edit in Anchor"** to open full Anchor Editor
-2. Modify XML in the editor
-3. Save changes - automatically syncs back to Harbor
-4. Version auto-increments on XML changes
-5. List updates with new version number
+1. Right-click on a model card
+2. Select **"Edit"** from the context menu
+3. Anchor Modeler opens with your model loaded
+4. Modify the model visually
+5. Save changes - automatically syncs back to Harbor
+6. Version auto-increments on XML changes
+7. List updates with new version number
 
 ### Renaming Models
-1. Click **"✏️ Rename"** on model card
-2. Enter new name in modal
-3. Press Enter or click "Rename"
-4. Does NOT increment version number
+1. Right-click on a model card
+2. Select **"Rename"** from the context menu
+3. Enter new name in modal
+4. Click **"Rename"** button
+5. Does NOT increment version number
 
 ### Deleting Models
-1. Click **"🗑️ Delete"** on model card
-2. Confirm in dialog
-3. Model removed immediately
-4. Cannot be undone
+1. Right-click on a model card
+2. Select **"Delete"** from the context menu
+3. Confirm in dialog
+4. Model removed immediately
+5. Cannot be undone
 
 ### Exporting Models
-1. Click **"⬇️ Export"** on model card
-2. File downloads automatically: `ModelName_v<version>.xml`
-3. Contains complete XML content
-4. Can be used externally or imported to another Harbor instance
+1. Right-click on a model card
+2. Select **"Export"** from the context menu
+3. File downloads automatically: `ModelName_v<version>.xml`
+4. Contains complete XML content
+5. Can be used externally or imported to another Harbor instance
 
 ## Testing
 
