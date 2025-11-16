@@ -1,221 +1,108 @@
-import React, { useState, useEffect } from 'react';import React, { useState, useEffect } from 'react';
-
-import { anchorModelsAPI } from '../services/api';import { anchorModelsAPI } from '../services/api';
-
-import '../styles/VersionHistory.css';
+import React, { useState, useEffect, useCallback } from 'react';
+import { anchorModelsAPI } from '../services/api';
 
 function VersionHistory({ modelId, isOpen, onClose, onVersionRestored }) {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [expandedVersion, setExpandedVersion] = useState(null);
 
-  const [history, setHistory] = useState([]);const VersionHistory = ({ modelId, onClose, onRollback }) => {
-
-  const [loading, setLoading] = useState(false);  const [versions, setVersions] = useState([]);
-
-  const [error, setError] = useState(null);  const [loading, setLoading] = useState(true);
-
-  const [expandedVersion, setExpandedVersion] = useState(null);  const [error, setError] = useState(null);
-
-  const [rollbackInProgress, setRollbackInProgress] = useState(false);
+  const loadHistory = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await anchorModelsAPI.getHistory(modelId);
+      setHistory(response.data);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to load version history';
+      setError(errorMsg);
+      console.error('Error loading version history:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [modelId]);
 
   useEffect(() => {
+    if (isOpen && modelId) {
+      loadHistory();
+    }
+  }, [isOpen, modelId, loadHistory]);
 
-    if (isOpen && modelId) {  useEffect(() => {
-
-      loadHistory();    const fetchVersionHistory = async () => {
-
-    }      try {
-
-  }, [isOpen, modelId]);        setLoading(true);
-
-        const response = await anchorModelsAPI.getVersionHistory(modelId);
-
-  const loadHistory = async () => {        setVersions(response.data);
-
-    try {        setError(null);
-
-      setLoading(true);      } catch (err) {
-
-      setError(null);        setError(err.response?.data?.message || 'Failed to fetch version history');
-
-      const response = await anchorModelsAPI.getHistory(modelId);      } finally {
-
-      setHistory(response.data);        setLoading(false);
-
-    } catch (err) {      }
-
-      const errorMsg = err.response?.data?.message || 'Failed to load version history';    };
-
-      setError(errorMsg);
-
-      console.error('Error loading version history:', err);    fetchVersionHistory();
-
-    } finally {  }, [modelId]);
-
-      setLoading(false);
-
-    }  const handleRollback = async (versionNum) => {
-
-  };    if (!window.confirm(`Rollback to version ${versionNum}?`)) {
-
-      return;
-
-  const handleRestoreVersion = async (versionNumber) => {    }
-
+  const handleRestoreVersion = async (versionNumber) => {
     try {
+      setLoading(true);
+      setError(null);
 
-      setLoading(true);    try {
+      const response = await anchorModelsAPI.restoreVersion(modelId, versionNumber);
 
-      setError(null);      setRollbackInProgress(true);
+      await loadHistory();
 
-            await anchorModelsAPI.rollbackToVersion(modelId, versionNum, `Rollback to version ${versionNum}`);
-
-      const response = await anchorModelsAPI.restoreVersion(modelId, versionNumber);      setError(null);
-
-            if (onRollback) {
-
-      // Reload history        onRollback();
-
-      await loadHistory();      }
-
-            onClose();
-
-      if (onVersionRestored) {    } catch (err) {
-
-        onVersionRestored(response.data.model);      setError(err.response?.data?.message || 'Failed to rollback');
-
-      }    } finally {
-
-    } catch (err) {      setRollbackInProgress(false);
-
-      const errorMsg = err.response?.data?.message || 'Failed to restore version';    }
-
-      setError(errorMsg);  };
-
+      if (onVersionRestored) {
+        onVersionRestored(response.data.model);
+      }
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to restore version';
+      setError(errorMsg);
       console.error('Error restoring version:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    } finally {  const formatDate = (dateString) => {
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  };
 
-      setLoading(false);    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatXmlPreview = (xml) => {
+    return xml.substring(0, 200) + (xml.length > 200 ? '...' : '');
+  };
 
-    }      month: 'short',
+  if (!isOpen) return null;
 
-  };      day: 'numeric',
-
-      year: 'numeric',
-
-  const formatDate = (dateString) => {      hour: '2-digit',
-
-    const date = new Date(dateString);      minute: '2-digit',
-
-    return date.toLocaleString();    });
-
-  };  };
-
-
-
-  const formatXmlPreview = (xml) => {  if (loading) {
-
-    // Return first 200 characters of XML for preview    return (
-
-    return xml.substring(0, 200) + (xml.length > 200 ? '...' : '');      <div className="version-history-modal">
-
-  };        <div className="version-history-content">
-
-          <h2>Version History</h2>
-
-  if (!isOpen) return null;          <p>Loading versions...</p>
-
-          <button onClick={onClose} className="close-btn">Close</button>
-
-  return (        </div>
-
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">      </div>
-
-      <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">    );
-
-        {/* Header */}  }
-
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-slate-100 border-b border-slate-300 p-6 flex items-center justify-between">
-
-          <h2 className="text-2xl font-bold text-slate-900">Version History</h2>  return (
-
-          <button    <div className="version-history-modal">
-
-            onClick={onClose}      <div className="version-history-content">
-
-            className="text-slate-500 hover:text-slate-700 text-2xl leading-none"        <h2>Version History</h2>
-
-            aria-label="Close"        
-
-          >        {error && <div className="error-message">{error}</div>}
-
+          <h2 className="text-2xl font-bold text-slate-900">Version History</h2>
+          <button
+            onClick={onClose}
+            className="text-slate-500 hover:text-slate-700 text-2xl leading-none"
+            aria-label="Close"
+          >
             ×
+          </button>
+        </div>
 
-          </button>        {versions.length === 0 ? (
+        <div className="p-6">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              {error}
+            </div>
+          )}
 
-        </div>          <p>No version history found.</p>
-
-        ) : (
-
-        {/* Content */}          <div className="versions-list">
-
-        <div className="p-6">            {versions.map((version) => (
-
-          {error && (              <div key={`${version.versionNumber}`} className="version-item">
-
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">                <div className="version-header">
-
-              {error}                  <span className="version-number">v{version.versionNumber}</span>
-
-            </div>                  <span className="version-author">{version.author}</span>
-
-          )}                  <span className="version-date">{formatDate(version.createdAt)}</span>
-
-                </div>
-
-          {loading && !history.length ? (                <div className="version-details">
-
-            <div className="text-center py-8">                  <p className="changelog">{version.changelog || 'No description'}</p>
-
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-ocean-600"></div>                  <button
-
-              <p className="text-slate-600 mt-2">Loading version history...</p>                    onClick={() => handleRollback(version.versionNumber)}
-
-            </div>                    disabled={rollbackInProgress}
-
-          ) : history.length === 0 ? (                    className="rollback-btn"
-
-            <p className="text-slate-500 text-center py-8">No versions available</p>                  >
-
-          ) : (                    {rollbackInProgress ? 'Rolling back...' : 'Rollback'}
-
-            <div className="space-y-4">                  </button>
-
-              {history.map((version) => (                </div>
-
-                <div              </div>
-
-                  key={version.versionNumber || 'current'}            ))}
-
-                  className={`border rounded-lg p-4 transition-all ${          </div>
-
-                    expandedVersion === version.versionNumber        )}
-
+          {loading && !history.length ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-ocean-600"></div>
+              <p className="text-slate-600 mt-2">Loading version history...</p>
+            </div>
+          ) : history.length === 0 ? (
+            <p className="text-slate-500 text-center py-8">No versions available</p>
+          ) : (
+            <div className="space-y-4">
+              {history.map((version) => (
+                <div
+                  key={version.versionNumber || 'current'}
+                  className={`border rounded-lg p-4 transition-all ${
+                    expandedVersion === version.versionNumber
                       ? 'border-ocean-400 bg-ocean-50'
-
-                      : 'border-slate-200 bg-white hover:border-slate-300'        <button onClick={onClose} className="close-btn">Close</button>
-
-                  }`}      </div>
-
-                >    </div>
-
-                  <div className="flex items-center justify-between gap-4">  );
-
-                    <div className="flex-1">};
-
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
                       <div className="flex items-center gap-2">
-
-                        <span className="inline-block px-3 py-1 bg-ocean-100 text-ocean-700 text-sm font-semibold rounded">export default VersionHistory;
-
+                        <span className="inline-block px-3 py-1 bg-ocean-100 text-ocean-700 text-sm font-semibold rounded">
                           v{version.versionNumber}
                         </span>
                         {version.isCurrent && (
@@ -243,7 +130,6 @@ function VersionHistory({ modelId, isOpen, onClose, onVersionRestored }) {
                     )}
                   </div>
 
-                  {/* XML Preview (expandable) */}
                   <button
                     onClick={() =>
                       setExpandedVersion(
