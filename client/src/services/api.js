@@ -25,6 +25,13 @@ export const anchorModelsAPI = {
   
   // Delete anchor model
   delete: (id) => api.delete(`/anchor-models/${id}`),
+
+  // Get version history for a model
+  getHistory: (id) => api.get(`/anchor-models/${id}/history`),
+
+  // Restore a previous version
+  restoreVersion: (id, versionNumber) => 
+    api.post(`/anchor-models/${id}/restore/${versionNumber}`),
 };
 
 export default api;

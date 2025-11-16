@@ -4,6 +4,7 @@ import ModelCard from './components/ModelCard';
 import CreateModal from './components/CreateModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import RenameModal from './components/RenameModal';
+import VersionHistory from './components/VersionHistory';
 import Button from './components/Button';
 import { useToast } from './hooks/useToast';
 import { GridSkeleton } from './components/Skeleton';
@@ -17,6 +18,8 @@ function App() {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [renameTargetId, setRenameTargetId] = useState(null);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [versionHistoryModelId, setVersionHistoryModelId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const { addToast, ToastContainer } = useToast();
@@ -175,6 +178,23 @@ function App() {
     }
   }, [addToast]);
 
+  const handleViewVersionHistory = useCallback((modelId) => {
+    setVersionHistoryModelId(modelId);
+    setShowVersionHistory(true);
+  }, []);
+
+  const handleCloseVersionHistory = useCallback(() => {
+    setShowVersionHistory(false);
+    setVersionHistoryModelId(null);
+  }, []);
+
+  const handleVersionRestored = useCallback((updatedModel) => {
+    setAnchorModels(anchorModels.map(m => 
+      m._id === updatedModel._id ? updatedModel : m
+    ));
+    addToast(`Restored to version ${updatedModel.version - 1}`, 'success');
+  }, [anchorModels, addToast]);
+
   return (
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
@@ -325,6 +345,7 @@ function App() {
                     onRename={handleRenameClick}
                     onDelete={handleDeleteClick}
                     onExport={handleExportModel}
+                    onViewHistory={handleViewVersionHistory}
                   />
                 ))}
               </div>
@@ -356,6 +377,13 @@ function App() {
         onClose={handleCloseRenameModal}
         onConfirm={handleConfirmRename}
         loading={loading}
+      />
+
+      <VersionHistory
+        modelId={versionHistoryModelId}
+        isOpen={showVersionHistory}
+        onClose={handleCloseVersionHistory}
+        onVersionRestored={handleVersionRestored}
       />
 
       {/* Toast Notifications */}

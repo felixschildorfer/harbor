@@ -63,11 +63,21 @@ router.get('/:id', async (req, res) => {
 // PUT update anchor model
 router.put('/:id', async (req, res) => {
   try {
-    const { name, xmlContent } = req.body;
+    const { name, xmlContent, message, description, tags } = req.body;
     
     const anchorModel = await AnchorModel.findById(req.params.id);
     if (!anchorModel) {
       return res.status(404).json({ message: 'Anchor model not found' });
+    }
+
+    // Store current version in history before updating
+    if (xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent) {
+      anchorModel.versionHistory.push({
+        versionNumber: anchorModel.version,
+        xmlContent: anchorModel.xmlContent,
+        message: message || '',
+        createdAt: new Date(),
+      });
     }
 
     // Update fields if provided
@@ -77,9 +87,15 @@ router.put('/:id', async (req, res) => {
     if (xmlContent !== undefined) {
       anchorModel.xmlContent = xmlContent.trim();
     }
+    if (description !== undefined) {
+      anchorModel.description = description.trim();
+    }
+    if (tags !== undefined && Array.isArray(tags)) {
+      anchorModel.tags = tags.filter(t => t.trim()).map(t => t.trim());
+    }
     
     // Increment version when XML changes
-    if (xmlContent !== undefined) {
+    if (xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent) {
       anchorModel.version += 1;
     }
 
@@ -87,6 +103,84 @@ router.put('/:id', async (req, res) => {
     res.json(updatedModel);
   } catch (error) {
     console.error('Error updating anchor model:', error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// GET version history for a model
+router.get('/:id/history', async (req, res) => {
+  try {
+    const anchorModel = await AnchorModel.findById(req.params.id);
+    if (!anchorModel) {
+      return res.status(404).json({ message: 'Anchor model not found' });
+    }
+    
+    const history = [
+      {
+        versionNumber: anchorModel.version,
+        xmlContent: anchorModel.xmlContent,
+        message: 'Current',
+        createdAt: anchorModel.updatedAt,
+        isCurrent: true,
+      },
+      ...anchorModel.versionHistory.sort((a, b) => b.versionNumber - a.versionNumber),
+    ];
+    
+    res.json(history);
+  } catch (error) {
+    console.error('Error fetching version history:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST restore a previous version
+router.post('/:id/restore/:versionNumber', async (req, res) => {
+  try {
+    const { versionNumber } = req.params;
+    const anchorModel = await AnchorModel.findById(req.params.id);
+    
+    if (!anchorModel) {
+      return res.status(404).json({ message: 'Anchor model not found' });
+    }
+
+    let versionToRestore = null;
+    
+    // Check if it's the current version
+    if (parseInt(versionNumber) === anchorModel.version) {
+      versionToRestore = {
+        xmlContent: anchorModel.xmlContent,
+        versionNumber: anchorModel.version,
+      };
+    } else {
+      // Find in history
+      versionToRestore = anchorModel.versionHistory.find(
+        v => v.versionNumber === parseInt(versionNumber)
+      );
+    }
+
+    if (!versionToRestore) {
+      return res.status(404).json({ message: 'Version not found' });
+    }
+
+    // Store current version in history
+    anchorModel.versionHistory.push({
+      versionNumber: anchorModel.version,
+      xmlContent: anchorModel.xmlContent,
+      message: `Reverted from v${versionNumber}`,
+      createdAt: new Date(),
+    });
+
+    // Restore the version
+    anchorModel.xmlContent = versionToRestore.xmlContent;
+    anchorModel.version += 1;
+
+    const restoredModel = await anchorModel.save();
+    res.json({
+      message: `Restored to version ${versionNumber}`,
+      model: restoredModel,
+    });
+  } catch (error) {
+    console.error('Error restoring version:', error);
     res.status(400).json({ message: error.message });
   }
 });

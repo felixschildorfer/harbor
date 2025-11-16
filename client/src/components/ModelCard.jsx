@@ -8,8 +8,9 @@ import ContextMenu from './ContextMenu';
  * @param {Function} onRename - Callback to rename model
  * @param {Function} onDelete - Callback to delete model
  * @param {Function} onExport - Callback to export model
+ * @param {Function} onViewHistory - Callback to view version history
  */
-const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport }) => {
+const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport, onViewHistory }) => {
   const handleEdit = React.useCallback(() => {
     onEdit(model._id);
   }, [model._id, onEdit]);
@@ -26,10 +27,18 @@ const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport }) =
     onExport(model);
   }, [model, onExport]);
 
+  const handleViewHistory = React.useCallback(() => {
+    onViewHistory(model._id);
+  }, [model._id, onViewHistory]);
+
   const menuItems = [
     {
       label: 'Edit',
       onClick: handleEdit,
+    },
+    {
+      label: 'Version History',
+      onClick: handleViewHistory,
     },
     {
       label: 'Rename',

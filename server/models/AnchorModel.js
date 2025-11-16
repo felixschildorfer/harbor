@@ -1,5 +1,28 @@
 import mongoose from 'mongoose';
 
+// Version history sub-schema
+const versionHistorySchema = new mongoose.Schema(
+  {
+    versionNumber: {
+      type: Number,
+      required: true,
+    },
+    xmlContent: {
+      type: String,
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    message: {
+      type: String,
+      default: '',
+    },
+  },
+  { _id: true }
+);
+
 const anchorModelSchema = new mongoose.Schema(
   {
     name: {
@@ -16,6 +39,18 @@ const anchorModelSchema = new mongoose.Schema(
       required: true,
       default: 1,
     },
+    versionHistory: [versionHistorySchema],
+    description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
   },
   {
     timestamps: true,
