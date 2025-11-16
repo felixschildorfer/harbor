@@ -46,68 +46,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET anchor model by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const anchorModel = await AnchorModel.findById(req.params.id);
-    if (!anchorModel) {
-      return res.status(404).json({ message: 'Anchor model not found' });
-    }
-    res.json(anchorModel);
-  } catch (error) {
-    console.error('Error fetching anchor model:', error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// PUT update anchor model
-router.put('/:id', async (req, res) => {
-  try {
-    const { name, xmlContent, message, description, tags } = req.body;
-    
-    const anchorModel = await AnchorModel.findById(req.params.id);
-    if (!anchorModel) {
-      return res.status(404).json({ message: 'Anchor model not found' });
-    }
-
-    // Store current version in history before updating
-    if (xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent) {
-      anchorModel.versionHistory.push({
-        versionNumber: anchorModel.version,
-        xmlContent: anchorModel.xmlContent,
-        message: message || '',
-        createdAt: new Date(),
-      });
-    }
-
-    // Update fields if provided
-    if (name !== undefined) {
-      anchorModel.name = name.trim();
-    }
-    if (xmlContent !== undefined) {
-      anchorModel.xmlContent = xmlContent.trim();
-    }
-    if (description !== undefined) {
-      anchorModel.description = description.trim();
-    }
-    if (tags !== undefined && Array.isArray(tags)) {
-      anchorModel.tags = tags.filter(t => t.trim()).map(t => t.trim());
-    }
-    
-    // Increment version when XML changes
-    if (xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent) {
-      anchorModel.version += 1;
-    }
-
-    const updatedModel = await anchorModel.save();
-    res.json(updatedModel);
-  } catch (error) {
-    console.error('Error updating anchor model:', error);
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// GET version history for a model
+// GET version history for a model (must come before /:id route)
 router.get('/:id/history', async (req, res) => {
   try {
     const anchorModel = await AnchorModel.findById(req.params.id);
@@ -184,6 +123,68 @@ router.post('/:id/restore/:versionNumber', async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
+// GET anchor model by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const anchorModel = await AnchorModel.findById(req.params.id);
+    if (!anchorModel) {
+      return res.status(404).json({ message: 'Anchor model not found' });
+    }
+    res.json(anchorModel);
+  } catch (error) {
+    console.error('Error fetching anchor model:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PUT update anchor model
+router.put('/:id', async (req, res) => {
+  try {
+    const { name, xmlContent, message, description, tags } = req.body;
+    
+    const anchorModel = await AnchorModel.findById(req.params.id);
+    if (!anchorModel) {
+      return res.status(404).json({ message: 'Anchor model not found' });
+    }
+
+    // Store current version in history before updating
+    if (xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent) {
+      anchorModel.versionHistory.push({
+        versionNumber: anchorModel.version,
+        xmlContent: anchorModel.xmlContent,
+        message: message || '',
+        createdAt: new Date(),
+      });
+    }
+
+    // Update fields if provided
+    if (name !== undefined) {
+      anchorModel.name = name.trim();
+    }
+    if (xmlContent !== undefined) {
+      anchorModel.xmlContent = xmlContent.trim();
+    }
+    if (description !== undefined) {
+      anchorModel.description = description.trim();
+    }
+    if (tags !== undefined && Array.isArray(tags)) {
+      anchorModel.tags = tags.filter(t => t.trim()).map(t => t.trim());
+    }
+    
+    // Increment version when XML changes
+    if (xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent) {
+      anchorModel.version += 1;
+    }
+
+    const updatedModel = await anchorModel.save();
+    res.json(updatedModel);
+  } catch (error) {
+    console.error('Error updating anchor model:', error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
 
 // DELETE anchor model
 router.delete('/:id', async (req, res) => {
