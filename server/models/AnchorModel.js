@@ -39,6 +39,10 @@ const anchorModelSchema = new mongoose.Schema(
       required: true,
       default: 1,
     },
+    currentVersionNumber: {
+      type: Number,
+      default: 1,
+    },
     versionHistory: [versionHistorySchema],
     description: {
       type: String,

@@ -192,7 +192,10 @@ function App() {
     setAnchorModels(anchorModels.map(m => 
       m._id === updatedModel._id ? updatedModel : m
     ));
-    addToast(`Restored to version ${updatedModel.version - 1}`, 'success');
+    addToast(`Version switched successfully`, 'success');
+    // Close the version history modal
+    setShowVersionHistory(false);
+    setVersionHistoryModelId(null);
   }, [anchorModels, addToast]);
 
   return (

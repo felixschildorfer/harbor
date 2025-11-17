@@ -6,6 +6,7 @@ function VersionHistory({ modelId, isOpen, onClose, onVersionRestored }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [expandedVersion, setExpandedVersion] = useState(null);
+  const [restorePending, setRestorePending] = useState(null);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -29,7 +30,18 @@ function VersionHistory({ modelId, isOpen, onClose, onVersionRestored }) {
   }, [isOpen, modelId, loadHistory]);
 
   const handleRestoreVersion = async (versionNumber) => {
+    // Show confirmation dialog
+    const versionInfo = history.find(v => v.versionNumber === versionNumber);
+    const message = `Switch to version ${versionNumber}?${
+      versionInfo?.message ? `\n"${versionInfo.message}"` : ''
+    }\n\nThis will make version ${versionNumber} the current version.`;
+    
+    if (!window.confirm(message)) {
+      return; // User cancelled
+    }
+
     try {
+      setRestorePending(versionNumber);
       setLoading(true);
       setError(null);
 
@@ -46,6 +58,7 @@ function VersionHistory({ modelId, isOpen, onClose, onVersionRestored }) {
       console.error('Error restoring version:', err);
     } finally {
       setLoading(false);
+      setRestorePending(null);
     }
   };
 
@@ -61,7 +74,7 @@ function VersionHistory({ modelId, isOpen, onClose, onVersionRestored }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-slate-100 border-b border-slate-300 p-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-slate-900">Version History</h2>
@@ -119,13 +132,20 @@ function VersionHistory({ modelId, isOpen, onClose, onVersionRestored }) {
                       </p>
                     </div>
 
-                    {!version.isCurrent && (
+                    {version.isCurrent !== true && (
                       <button
                         onClick={() => handleRestoreVersion(version.versionNumber)}
-                        disabled={loading}
-                        className="px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                        disabled={loading || restorePending === version.versionNumber}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap flex items-center gap-2"
                       >
-                        Restore
+                        {restorePending === version.versionNumber ? (
+                          <>
+                            <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            Switching...
+                          </>
+                        ) : (
+                          'Switch to this version'
+                        )}
                       </button>
                     )}
                   </div>

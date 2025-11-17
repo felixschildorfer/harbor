@@ -64,7 +64,7 @@ const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport, onV
             {model.name}
           </h3>
           <p className="text-sm text-slate-600">
-            Version {model.version} • {new Date(model.createdAt).toLocaleDateString()}
+            Version {model.currentVersionNumber || model.version} • {new Date(model.createdAt).toLocaleDateString()}
           </p>
         </div>
 

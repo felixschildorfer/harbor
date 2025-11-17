@@ -54,18 +54,33 @@ router.get('/:id/history', async (req, res) => {
       return res.status(404).json({ message: 'Anchor model not found' });
     }
     
-    const history = [
-      {
+    const currentVersion = anchorModel.currentVersionNumber || anchorModel.version;
+    
+    // Get all versions from history
+    const historyVersions = anchorModel.versionHistory.map(v => ({
+      ...v.toObject(),
+      isCurrent: currentVersion === v.versionNumber,
+      isLatest: v.versionNumber === anchorModel.version,
+    }));
+    
+    // Add the latest version only if it's not already in history
+    const latestInHistory = historyVersions.some(v => v.versionNumber === anchorModel.version);
+    
+    if (!latestInHistory) {
+      historyVersions.unshift({
         versionNumber: anchorModel.version,
         xmlContent: anchorModel.xmlContent,
-        message: 'Current',
+        message: 'Latest version',
         createdAt: anchorModel.updatedAt,
-        isCurrent: true,
-      },
-      ...anchorModel.versionHistory.sort((a, b) => b.versionNumber - a.versionNumber),
-    ];
+        isCurrent: currentVersion === anchorModel.version,
+        isLatest: true,
+      });
+    }
     
-    res.json(history);
+    // Sort by version number descending
+    historyVersions.sort((a, b) => b.versionNumber - a.versionNumber);
+    
+    res.json(historyVersions);
   } catch (error) {
     console.error('Error fetching version history:', error);
     res.status(500).json({ message: error.message });
@@ -76,6 +91,7 @@ router.get('/:id/history', async (req, res) => {
 router.post('/:id/restore/:versionNumber', async (req, res) => {
   try {
     const { versionNumber } = req.params;
+    const parsedVersionNumber = parseInt(versionNumber);
     const anchorModel = await AnchorModel.findById(req.params.id);
     
     if (!anchorModel) {
@@ -84,34 +100,44 @@ router.post('/:id/restore/:versionNumber', async (req, res) => {
 
     let versionToRestore = null;
     
-    // Check if it's the current version
-    if (parseInt(versionNumber) === anchorModel.version) {
+    // Always look in history first, because that's where ALL versions are stored (including the latest if we saved it)
+    versionToRestore = anchorModel.versionHistory.find(
+      v => v.versionNumber === parsedVersionNumber
+    );
+    
+    // If not in history and it's the latest version, load from xmlContent
+    if (!versionToRestore && parsedVersionNumber === anchorModel.version) {
       versionToRestore = {
         xmlContent: anchorModel.xmlContent,
         versionNumber: anchorModel.version,
       };
-    } else {
-      // Find in history
-      versionToRestore = anchorModel.versionHistory.find(
-        v => v.versionNumber === parseInt(versionNumber)
-      );
     }
 
     if (!versionToRestore) {
       return res.status(404).json({ message: 'Version not found' });
     }
 
-    // Store current version in history
-    anchorModel.versionHistory.push({
-      versionNumber: anchorModel.version,
-      xmlContent: anchorModel.xmlContent,
-      message: `Reverted from v${versionNumber}`,
-      createdAt: new Date(),
-    });
+    const currentVersionNum = anchorModel.currentVersionNumber || anchorModel.version;
+    
+    // Before restoring, if we're switching away from the LATEST version, save it to history first
+    // This ensures we don't lose the latest version when switching to an older one
+    if (currentVersionNum === anchorModel.version && parsedVersionNumber !== anchorModel.version) {
+      const latestAlreadySaved = anchorModel.versionHistory.some(v => v.versionNumber === anchorModel.version);
+      
+      if (!latestAlreadySaved) {
+        // Save the latest version to history
+        anchorModel.versionHistory.push({
+          versionNumber: anchorModel.version,
+          xmlContent: anchorModel.xmlContent,
+          message: '',
+          createdAt: new Date(),
+        });
+      }
+    }
 
-    // Restore the version
+    // Now restore the version
     anchorModel.xmlContent = versionToRestore.xmlContent;
-    anchorModel.version += 1;
+    anchorModel.currentVersionNumber = parsedVersionNumber;
 
     const restoredModel = await anchorModel.save();
     res.json({
@@ -148,14 +174,20 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Anchor model not found' });
     }
 
+    // Check if XML content has changed BEFORE updating
+    const xmlHasChanged = xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent;
+
     // Store current version in history before updating
-    if (xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent) {
+    if (xmlHasChanged) {
       anchorModel.versionHistory.push({
         versionNumber: anchorModel.version,
         xmlContent: anchorModel.xmlContent,
         message: message || '',
         createdAt: new Date(),
       });
+      // Increment version when XML changes
+      anchorModel.version += 1;
+      anchorModel.currentVersionNumber = anchorModel.version;
     }
 
     // Update fields if provided
@@ -170,11 +202,6 @@ router.put('/:id', async (req, res) => {
     }
     if (tags !== undefined && Array.isArray(tags)) {
       anchorModel.tags = tags.filter(t => t.trim()).map(t => t.trim());
-    }
-    
-    // Increment version when XML changes
-    if (xmlContent !== undefined && xmlContent.trim() !== anchorModel.xmlContent) {
-      anchorModel.version += 1;
     }
 
     const updatedModel = await anchorModel.save();
