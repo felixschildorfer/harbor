@@ -6908,6 +6908,71 @@
         <!-- filled dynamically -->
     </div>
 
+    <!-- Loading overlay (hidden by default) -->
+    <div id="loadingOverlay" aria-hidden="true" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(255,255,255,0.75);backdrop-filter:blur(2px);">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Open Sans',sans-serif;text-align:center;">
+            <div id="loadingSpinner" style="width:48px;height:48px;margin:0 auto 12px;border:6px solid #e3d7d7;border-top-color:#c80514;border-radius:50%;animation:anchor-spin 0.9s linear infinite;"></div>
+            <div id="loadingIndicator" style="font-size:14px;color:#333;">Loading…</div>
+        </div>
+    </div>
+    <style>
+        @keyframes anchor-spin { to { transform: rotate(360deg); } }
+    </style>
+    <!-- Hidden file input for loading local model files (single file only) -->
+    <input id="modelFileInput" type="file" accept=".xml,text/xml,application/xml" style="display:none" aria-hidden="true" />
+    <!-- Live region for announcing loaded filename (improves accessibility) -->
+    <div id="fileLoadStatus" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" aria-live="polite" aria-atomic="true"></div>
+    <script>
+    (function(){
+        const input = document.getElementById('modelFileInput');
+        const statusRegion = document.getElementById('fileLoadStatus');
+        if(!input) return;
+
+        async function loadFile(file){
+            if(!file) return;
+            if(Actions.loading) return; // prevent concurrent loads
+            Actions.showLoading('Loading ' + file.name + '…');
+            try {
+                const text = await file.text(); // modern File API, returns Promise
+                const xml = new DOMParser().parseFromString(text, 'text/xml');
+                // Basic parse error detection (presence of parsererror element)
+                if(xml.getElementsByTagName('parsererror').length){
+                    throw new Error('XML parse error');
+                }
+                Actions.lastLocalFilename = file.name;
+                Actions._applyLoadedModel(xml, false);
+                statusRegion.textContent = 'Loaded ' + file.name;
+            } catch(err){
+                console.error('Failed to load file', err);
+                alert('Failed to load model: ' + err.message);
+                Actions.hideLoading();
+            } finally {
+                // allow selecting same file again
+                input.value = '';
+            }
+        }
+
+        function handleFileList(fileList){
+            if(!fileList || !fileList.length) return;
+            // restrict strictly to the first file
+            loadFile(fileList[0]);
+        }
+
+        input.addEventListener('change', e => handleFileList(e.target.files));
+
+        // Optional drag & drop support
+        document.addEventListener('dragover', e => { e.preventDefault(); });
+        document.addEventListener('drop', e => {
+            if(!e.dataTransfer) return;
+            const files = e.dataTransfer.files;
+            if(files && files.length){
+                e.preventDefault();
+                handleFileList(files);
+            }
+        });
+    })();
+    </script>
+
     <script>
     // ================================================================
     // Harbor API Integration
