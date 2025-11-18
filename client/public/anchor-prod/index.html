@@ -6919,10 +6919,20 @@
         const urlParams = new URLSearchParams(window.location.search);
         const modelId = urlParams.get('modelId');
         
-        // If modelId is provided, load the model from Harbor
-        if (modelId) {
-            loadModelFromHarbor(modelId);
+        // Wait for Anchor initialization to complete before loading model
+        function waitForActionsAndLoad() {
+            if (typeof Actions !== 'undefined' && Actions.showLoading && Actions._applyLoadedModel) {
+                if (modelId) {
+                    loadModelFromHarbor(modelId);
+                }
+            } else {
+                // Retry in 100ms
+                setTimeout(waitForActionsAndLoad, 100);
+            }
         }
+        
+        // Start checking for Actions availability
+        waitForActionsAndLoad();
         
         async function loadModelFromHarbor(id) {
             try {
