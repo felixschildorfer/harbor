@@ -6968,25 +6968,26 @@
             if (!window.ANCHOR_VERSION_INFO) return;
             
             // Add version indicator to the header if not already present
+            // Only show when a model is loaded from Harbor
             setTimeout(() => {
-                const logotype = document.getElementById('logotype');
-                if (logotype && !document.getElementById('versionIndicator')) {
+                const cloud = document.getElementById('cloud');
+                if (cloud && !document.getElementById('versionIndicator') && window.HARBOR_MODEL_ID) {
                     const indicator = document.createElement('div');
                     indicator.id = 'versionIndicator';
                     indicator.style.cssText = `
                         position: fixed;
-                        top: 10px;
-                        right: 10px;
+                        bottom: 10px;
+                        left: 10px;
                         background: ${window.ANCHOR_VERSION_INFO.isProduction ? '#dcfce7' : '#dbeafe'};
                         color: ${window.ANCHOR_VERSION_INFO.isProduction ? '#166534' : '#1e40af'};
-                        padding: 6px 12px;
+                        padding: 8px 14px;
                         border-radius: 6px;
-                        font-size: 12px;
+                        font-size: 11px;
                         font-weight: bold;
                         border: 2px solid ${window.ANCHOR_VERSION_INFO.isProduction ? '#86efac' : '#60a5fa'};
                         z-index: 10000;
                     `;
-                    indicator.textContent = `Using Anchor Version: ${window.ANCHOR_VERSION_INFO.isProduction ? 'Production (v0.99.16)' : 'Test (v0.100.1)'}`;
+                    indicator.textContent = `Anchor: ${window.ANCHOR_VERSION_INFO.isProduction ? 'Production (v0.99.16)' : 'Test (v0.100.1)'}`;
                     document.body.appendChild(indicator);
                 }
             }, 500);

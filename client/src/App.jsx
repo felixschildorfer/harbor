@@ -76,8 +76,8 @@ function App() {
   }, []);
 
   const handleOpenNewFile = useCallback(() => {
-    // Open Anchor Editor without modelId for new file, with fresh=true to force minimal setup
-    window.open(`/anchor/index.html?fresh=true`, 'anchorEditor', 'width=1400,height=900');
+    // Open the Create Model modal instead of opening Anchor directly
+    setShowModal(true);
   }, []);
 
   const handleEditModel = useCallback((model) => {
