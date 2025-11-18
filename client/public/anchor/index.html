@@ -7736,6 +7736,7 @@
                 }
                 Actions.lastLocalFilename = file.name;
                 Actions._applyLoadedModel(xml, false);
+                Actions.hideLoading();
                 statusRegion.textContent = 'Loaded ' + file.name;
             } catch(err){
                 console.error('Failed to load file', err);
@@ -7883,6 +7884,7 @@
                         body: JSON.stringify({
                             name: window.HARBOR_MODEL_NAME || `New Model ${new Date().toLocaleTimeString()}`,
                             xmlContent: xmlString,
+                            anchorVersion: window.ANCHOR_VERSION_INFO?.version || 'v0.100.1',
                         }),
                     });
                     
