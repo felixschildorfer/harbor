@@ -264,6 +264,78 @@ npm run sync-anchor
 
 This rsyncs `../anchor/` → `client/public/anchor/`
 
+## Anchor Modeler Version Management
+
+Harbor supports **dual-bundle architecture** to manage multiple versions of Anchor Modeler simultaneously:
+
+### Overview
+
+- **Test Version (v0.100.1)**: Located in `/public/anchor/` - Latest features, updated monthly
+- **Production Version (v0.99.16)**: Located in `/public/anchor-prod/` - Stable, updated every few years
+
+Each model is created with a specific Anchor version, and when you edit it, the corresponding version is automatically loaded.
+
+### Version Selection
+
+When creating a new model in Harbor:
+1. Fill in the model name and XML content
+2. **Select an Anchor version:**
+   - **Newest Test Version (v0.100.1)**: Latest features and fixes (recommended for new development)
+   - **Production Release (v0.99.16)**: Stable, widely tested version (for production stability)
+3. The model will always open with the selected version
+
+### Version Badge
+
+Model cards display a version badge:
+- **Blue badge ("Test")**: Using the test version
+- **Green badge ("Production")**: Using the production version
+
+### Updating Anchor Versions
+
+#### Monthly Test Version Updates
+
+When Anchor upstream releases updates:
+
+```bash
+# In the /anchor repository (test version)
+git fetch upstream
+git merge upstream/main
+# Resolve any conflicts with custom modifications
+npm run build  # If build step exists
+```
+
+Then copy to Harbor:
+```bash
+cp -r /path/to/anchor/* /path/to/harbor/client/public/anchor/
+```
+
+#### Production Version Updates (Rare)
+
+The production version is rarely updated but follows the same process:
+
+```bash
+# In the /anchor-prod repository (production version, on v0.99.16 tag)
+# Only merge critical security or essential fixes
+# Then copy to Harbor:
+cp -r /path/to/anchor-prod/* /path/to/harbor/client/public/anchor-prod/
+```
+
+### Custom Modifications
+
+Both Anchor versions include Harbor integration:
+- **index.html** parameters: `modelId=<id>` to load from Harbor
+- **SQL fixes**: Template syntax corrections for code generation
+- **Save to Harbor**: "Save model to Harbor..." menu option
+
+When merging upstream updates, re-apply these customizations to maintain Harbor integration.
+
+### Architecture Benefits
+
+- ✅ **No startup slowdown**: Both versions bundled locally
+- ✅ **Model version persistence**: Models always use their original version
+- ✅ **Clean separation**: Easy to manage test and production independently
+- ✅ **Safe testing**: Try new features without affecting production models
+
 ## Development & Branching Strategy
 
 ### Main Branch

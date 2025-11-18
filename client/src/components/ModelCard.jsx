@@ -12,8 +12,8 @@ import ContextMenu from './ContextMenu';
  */
 const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport, onViewHistory }) => {
   const handleEdit = React.useCallback(() => {
-    onEdit(model._id);
-  }, [model._id, onEdit]);
+    onEdit(model);
+  }, [model, onEdit]);
 
   const handleRename = React.useCallback(() => {
     onRename(model._id);
@@ -60,9 +60,18 @@ const ModelCard = React.memo(({ model, onEdit, onRename, onDelete, onExport, onV
       <div className="card overflow-hidden hover:shadow-xl transition-all duration-base group cursor-context-menu">
         {/* Card Header */}
         <div className="card-header bg-gradient-to-r from-navy-50 to-ocean-50">
-          <h3 className="text-xl font-bold text-navy-950 text-truncate mb-1">
-            {model.name}
-          </h3>
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className="text-xl font-bold text-navy-950 text-truncate flex-1">
+              {model.name}
+            </h3>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${
+              model.anchorVersion === 'v0.99.16'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-blue-100 text-blue-800'
+            }`}>
+              {model.anchorVersion === 'v0.99.16' ? 'Production' : 'Test'}
+            </span>
+          </div>
           <p className="text-sm text-slate-600">
             Version {model.currentVersionNumber || model.version} • {new Date(model.createdAt).toLocaleDateString()}
           </p>

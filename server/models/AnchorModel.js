@@ -55,6 +55,11 @@ const anchorModelSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    anchorVersion: {
+      type: String,
+      enum: ['v0.100.1', 'v0.99.16'],
+      default: 'v0.100.1',
+    },
   },
   {
     timestamps: true,

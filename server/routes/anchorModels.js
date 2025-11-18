@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 // POST create a new anchor model
 router.post('/', async (req, res) => {
   try {
-    const { name, xmlContent } = req.body;
+    const { name, xmlContent, anchorVersion } = req.body;
     
     // xmlContent is required, name can be optional (generated timestamp if not provided)
     if (!xmlContent) {
@@ -31,6 +31,7 @@ router.post('/', async (req, res) => {
       name: modelName,
       xmlContent: xmlContent.trim(),
       version: 1,
+      anchorVersion: anchorVersion || 'v0.100.1', // Default to test version
     });
     
     const savedModel = await anchorModel.save();

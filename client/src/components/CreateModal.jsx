@@ -5,7 +5,7 @@ import React, { useState, useCallback } from 'react';
  * Supports file upload and direct XML content input
  */
 const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, error }) => {
-  const [formData, setFormData] = useState({ name: '', xmlContent: '' });
+  const [formData, setFormData] = useState({ name: '', xmlContent: '', anchorVersion: 'v0.100.1' });
   const [xmlFile, setXmlFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -86,9 +86,10 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
       await onSubmit({
         name: formData.name.trim(),
         xmlContent: formData.xmlContent.trim(),
+        anchorVersion: formData.anchorVersion,
       });
 
-      setFormData({ name: '', xmlContent: '' });
+      setFormData({ name: '', xmlContent: '', anchorVersion: 'v0.100.1' });
       setXmlFile(null);
     } catch (err) {
       console.error('Error submitting form:', err);
@@ -96,7 +97,7 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
   }, [formData, onSubmit, setError]);
 
   const handleClose = useCallback(() => {
-    setFormData({ name: '', xmlContent: '' });
+    setFormData({ name: '', xmlContent: '', anchorVersion: 'v0.100.1' });
     setXmlFile(null);
     setError(null);
     onClose();
@@ -163,6 +164,31 @@ const CreateModal = React.memo(({ isOpen, onClose, onSubmit, loading, setError, 
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent"
                 disabled={loading}
               />
+            </div>
+
+            {/* Anchor Version Selector */}
+            <div>
+              <label htmlFor="anchorVersion" className="block text-sm font-medium text-slate-700 mb-1">
+                Anchor Modeler Version
+              </label>
+              <select
+                id="anchorVersion"
+                name="anchorVersion"
+                value={formData.anchorVersion}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent"
+                disabled={loading}
+              >
+                <option value="v0.100.1">
+                  Newest Test Version (v0.100.1) - Latest features and fixes
+                </option>
+                <option value="v0.99.16">
+                  Production Release (v0.99.16) - Stable, widely tested
+                </option>
+              </select>
+              <p className="text-xs text-slate-500 mt-1">
+                Choose the version of Anchor Modeler to use. Once created, the model will always open with the selected version.
+              </p>
             </div>
 
             {/* File Upload Area */}

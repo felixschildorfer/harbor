@@ -54,6 +54,7 @@ function App() {
       await anchorModelsAPI.create({
         name: formData.name.trim(),
         xmlContent: formData.xmlContent.trim(),
+        anchorVersion: formData.anchorVersion,
       });
 
       setShowModal(false);
@@ -79,10 +80,12 @@ function App() {
     window.open(`/anchor/index.html?fresh=true`, 'anchorEditor', 'width=1400,height=900');
   }, []);
 
-  const handleEditModel = useCallback((modelId) => {
-    // Open Anchor Editor with modelId to load and edit existing model
-    if (modelId) {
-      window.open(`/anchor/index.html?modelId=${modelId}`, 'anchorEditor', 'width=1400,height=900');
+  const handleEditModel = useCallback((model) => {
+    // Open Anchor Editor with the appropriate version bundle
+    if (model && model._id) {
+      const bundleVersion = model.anchorVersion === 'v0.99.16' ? 'anchor-prod' : 'anchor';
+      const bundlePath = `/${bundleVersion}/index.html?modelId=${model._id}`;
+      window.open(bundlePath, 'anchorEditor', 'width=1400,height=900');
     }
   }, []);
 
