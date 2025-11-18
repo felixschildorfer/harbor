@@ -5488,6 +5488,26 @@
             // Harbor loading management
             loading: false,
             lastLocalFilename: null,
+            _applyLoadedModel: function(xml, layout) {
+                layout = typeof layout !== 'undefined' ? layout : false;
+                EventHandler.clearSelection();
+                SVGLayer.clearAll();
+                NAVLayer.clearAll();
+                // Reset any previous cloud/local metadata so old names do not linger
+                Model.uncloud();
+                Model.name = null;
+                Model.keywords = null;
+                Model.description = null;
+                Model.scope = 'private';
+                Model.clearStates();
+                Model.fromXML(xml);
+                Actions.setModelStatus();
+                Actions.resetZoom();
+                Actions.centerModel();
+                DrawingEngine.taint();
+                DrawingEngine.start(layout);
+                this.hideLoading();
+            },
             showLoading: function(message) {
                 var overlay = document.getElementById('loadingOverlay');
                 var label = document.getElementById('loadingIndicator');
