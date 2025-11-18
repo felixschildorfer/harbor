@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { anchorModelsAPI } from './services/api';
 import ModelCard from './components/ModelCard';
 import CreateModal from './components/CreateModal';
+import CreateBlankModal from './components/CreateBlankModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import RenameModal from './components/RenameModal';
 import VersionHistory from './components/VersionHistory';
@@ -14,6 +15,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showBlankModal, setShowBlankModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
@@ -76,9 +78,48 @@ function App() {
   }, []);
 
   const handleOpenNewFile = useCallback(() => {
-    // Open the Create Model modal instead of opening Anchor directly
-    setShowModal(true);
+    // Open the Create Blank Model modal
+    setShowBlankModal(true);
   }, []);
+
+  const handleCreateBlank = useCallback(async (formData) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Create a minimal model with a single anchor (same as "New model" in Anchor Modeler)
+      const blankXML = `<?xml version="1.0" encoding="UTF-8"?>
+<Anchor>
+  <anchor mnemonic="AN" descriptor="Anchor" identity="gen">
+    <metadata capsule="Metadata" />
+    <layout x="500" y="300" fixed="false" />
+  </anchor>
+</Anchor>`;
+      
+      const response = await anchorModelsAPI.create({
+        name: formData.name.trim(),
+        xmlContent: blankXML,
+        anchorVersion: formData.anchorVersion,
+      });
+
+      setShowBlankModal(false);
+      addToast(`Created "${formData.name}" successfully`, 'success');
+      
+      // Immediately open the Anchor editor with the new blank model
+      const bundleVersion = formData.anchorVersion === 'v0.99.16' ? 'anchor-prod' : 'anchor';
+      const bundlePath = `/${bundleVersion}/index.html?modelId=${response.data._id}`;
+      window.open(bundlePath, 'anchorEditor', 'width=1400,height=900');
+      
+      await fetchAnchorModels();
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to create anchor model';
+      setError(errorMsg);
+      addToast(errorMsg, 'error');
+      console.error('Error creating blank anchor model:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchAnchorModels, addToast]);
 
   const handleEditModel = useCallback((model) => {
     // Open Anchor Editor with the appropriate version bundle
@@ -368,6 +409,13 @@ function App() {
         loading={loading}
         error={error}
         setError={setError}
+      />
+
+      <CreateBlankModal
+        isOpen={showBlankModal}
+        onClose={() => setShowBlankModal(false)}
+        onCreate={handleCreateBlank}
+        loading={loading}
       />
 
       <DeleteConfirmModal
