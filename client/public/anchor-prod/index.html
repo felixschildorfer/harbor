@@ -5484,6 +5484,25 @@
                 pre.appendChild(document.createTextNode(text));
                 fragment.appendChild(pre);
                 return fragment;
+            },
+            // Harbor loading management
+            loading: false,
+            lastLocalFilename: null,
+            showLoading: function(message) {
+                var overlay = document.getElementById('loadingOverlay');
+                var label = document.getElementById('loadingIndicator');
+                if(!overlay || !label) return;
+                if(!message) message = 'Loading…';
+                label.textContent = message;
+                overlay.style.display = 'block';
+                document.body.setAttribute('aria-busy', 'true');
+                this.loading = true;
+            },
+            hideLoading: function() {
+                var overlay = document.getElementById('loadingOverlay');
+                if(overlay) overlay.style.display = 'none';
+                document.body.removeAttribute('aria-busy');
+                this.loading = false;
             }
         };
 
