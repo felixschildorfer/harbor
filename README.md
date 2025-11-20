@@ -75,6 +75,9 @@ A full-stack CRUD application for managing Anchor database models. Built with **
 - ✅ **Drag-and-Drop** - Upload XML files by dragging into create modal
 - ✅ **Model Versioning** - Auto-increment on XML changes, track history
 - ✅ **Comprehensive Testing** - 100+ tests (Jest backend, Vitest frontend)
+- ✅ **Database Integration** - Connect to SQL Server and execute queries directly
+- ✅ **Multi-Database Support** - Manage multiple database connections
+- ✅ **SQL Execution** - Run read/write queries with results display
 
 ### Creating Models
 1. Click **"Upload Model"** button in sidebar
@@ -118,6 +121,39 @@ A full-stack CRUD application for managing Anchor database models. Built with **
 3. File downloads automatically: `ModelName_v<version>.xml`
 4. Contains complete XML content
 5. Can be used externally or imported to another Harbor instance
+
+### Database Integration
+
+Harbor now supports direct database connectivity for executing SQL queries.
+
+**Managing Database Connections:**
+1. Click **"🗄️ DB Connections"** in sidebar
+2. Click **"+ New Connection"** button
+3. Fill in connection details (host, port, database, credentials)
+4. Click **"Create Connection"**
+5. Test connection validity with **"Test"** button
+6. Edit or delete connections as needed
+
+**Executing SQL Queries:**
+1. Click **"⚡ Execute SQL"** in sidebar
+2. Select a database connection from dropdown
+3. Enter SQL query (SELECT, INSERT, UPDATE, DELETE, DDL)
+4. Click **"▶ Execute Query"**
+5. View results in table format with execution metadata
+
+**Supported Operations:**
+- Read operations (SELECT)
+- Write operations (INSERT, UPDATE, DELETE)
+- DDL statements (CREATE, ALTER, DROP)
+- Stored procedure execution
+
+**Security Features:**
+- Encrypted password storage (AES-256)
+- SQL injection pattern detection
+- Query execution auditing
+- Connection-level authentication
+
+📖 **Detailed Documentation:** See [DATABASE_INTEGRATION.md](./DATABASE_INTEGRATION.md) for complete guide
 
 ## Testing
 
