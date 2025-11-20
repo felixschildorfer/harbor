@@ -34,4 +34,29 @@ export const anchorModelsAPI = {
     api.post(`/anchor-models/${id}/restore/${versionNumber}`),
 };
 
+// Database Connections API
+export const databaseAPI = {
+  // Get all connections
+  getConnections: () => api.get('/db/connections'),
+
+  // Get connection by ID
+  getConnection: (id) => api.get(`/db/connections/${id}`),
+
+  // Create new connection
+  createConnection: (data) => api.post('/db/connections', data),
+
+  // Update connection
+  updateConnection: (id, data) => api.put(`/db/connections/${id}`, data),
+
+  // Delete connection
+  deleteConnection: (id) => api.delete(`/db/connections/${id}`),
+
+  // Test connection
+  testConnection: (id) => api.post(`/db/test-connection/${id}`),
+
+  // Execute SQL query
+  executeQuery: (connectionId, query) => 
+    api.post('/db/execute', { connectionId, query }),
+};
+
 export default api;

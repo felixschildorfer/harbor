@@ -6,6 +6,8 @@ import CreateBlankModal from './components/CreateBlankModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import RenameModal from './components/RenameModal';
 import VersionHistory from './components/VersionHistory';
+import DatabaseSettings from './components/DatabaseSettings';
+import SqlExecutionPanel from './components/SqlExecutionPanel';
 import Button from './components/Button';
 import { useToast } from './hooks/useToast';
 import { GridSkeleton } from './components/Skeleton';
@@ -23,6 +25,8 @@ function App() {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [versionHistoryModelId, setVersionHistoryModelId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showDatabaseSettings, setShowDatabaseSettings] = useState(false);
+  const [showSqlPanel, setShowSqlPanel] = useState(false);
 
   const { addToast, ToastContainer } = useToast();
 
@@ -306,6 +310,27 @@ function App() {
             <span className="text-lg">⟲</span>
             {sidebarOpen && <span>Refresh</span>}
           </button>
+
+          {/* Database Section */}
+          <div className="pt-4 mt-4 border-t border-slate-700">
+            <button
+              onClick={() => setShowDatabaseSettings(true)}
+              className="sidebar-item w-full justify-start"
+              aria-label="Database connections"
+            >
+              <span className="text-lg">🗄️</span>
+              {sidebarOpen && <span>DB Connections</span>}
+            </button>
+
+            <button
+              onClick={() => setShowSqlPanel(true)}
+              className="sidebar-item w-full justify-start"
+              aria-label="Execute SQL"
+            >
+              <span className="text-lg">⚡</span>
+              {sidebarOpen && <span>Execute SQL</span>}
+            </button>
+          </div>
         </nav>
 
         {/* Footer Info */}
@@ -438,6 +463,18 @@ function App() {
         isOpen={showVersionHistory}
         onClose={handleCloseVersionHistory}
         onVersionRestored={handleVersionRestored}
+      />
+
+      <DatabaseSettings
+        isOpen={showDatabaseSettings}
+        onClose={() => setShowDatabaseSettings(false)}
+        addToast={addToast}
+      />
+
+      <SqlExecutionPanel
+        isOpen={showSqlPanel}
+        onClose={() => setShowSqlPanel(false)}
+        addToast={addToast}
       />
 
       {/* Toast Notifications */}

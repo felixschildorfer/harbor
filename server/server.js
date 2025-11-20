@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import anchorModelRoutes from './routes/anchorModels.js';
+import databaseRoutes from './routes/database.js';
+import { authMiddleware } from './middleware/auth.js';
 
 // Get __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -26,6 +28,7 @@ app.use(express.static(path.join(__dirname, '../client/public')));
 
 // Routes
 app.use('/api/anchor-models', anchorModelRoutes);
+app.use('/api/db', authMiddleware, databaseRoutes);
 
 // Health check route
 app.get('/api', (req, res) => {
