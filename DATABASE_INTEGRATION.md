@@ -2,7 +2,7 @@
 
 ## Overview
 
-Harbor now supports direct integration with external databases, allowing users to connect to multiple database servers and execute SQL queries directly from the application interface.
+Harbor now supports direct integration with external databases, allowing users to connect to multiple database servers and execute SQL queries directly from the application interface. The current release ships with adapters for **Microsoft SQL Server** and **PostgreSQL**.
 
 ## Architecture
 
@@ -11,6 +11,7 @@ Harbor now supports direct integration with external databases, allowing users t
 #### 1. Database Adapter Pattern
 - **DatabaseAdapter** (Abstract Interface): Defines standard methods all database adapters must implement
 - **SqlServerAdapter**: Microsoft SQL Server implementation with connection pooling
+- **PostgresAdapter**: PostgreSQL implementation powered by the `pg` client library
 - **AdapterFactory**: Factory pattern for creating appropriate database adapters
 
 #### 2. Data Model
@@ -70,10 +71,10 @@ Harbor now supports direct integration with external databases, allowing users t
 1. Click "🗄️ DB Connections" in the sidebar
 2. Click "+ New Connection"
 3. Fill in connection details:
-   - Connection Name (e.g., "Production SQL Server")
-   - Database Type (currently SQL Server only)
+   - Connection Name (e.g., "Production SQL Server" or "Staging Postgres")
+   - Database Type (SQL Server or PostgreSQL)
    - Host (IP or hostname)
-   - Port (default 1433 for SQL Server)
+   - Port (default 1433 for SQL Server, 5432 for PostgreSQL)
    - Database Name
    - Username
    - Password
@@ -163,7 +164,6 @@ Results include:
 ### Planned Features
 
 1. **Additional Database Support**
-   - PostgreSQL adapter
    - MySQL adapter
    - Oracle adapter
    - MongoDB query interface
@@ -233,6 +233,29 @@ Results include:
   requestTimeout: 15000
 }
 ```
+
+### PostgreSQL Connection Configuration
+
+```javascript
+{
+   user: username,
+   password: decryptedPassword,
+   host: host,
+   port: port || 5432,
+   database: databaseName,
+   ssl: false || { rejectUnauthorized: true },
+   max: 10, // Pool size (configurable via options.maxPoolSize)
+   idleTimeoutMillis: 30000,
+   connectionTimeoutMillis: 10000
+}
+```
+
+**Optional Settings (via connection options):**
+- `ssl`: set to `"true"`, `"require"`, or `"verify-full"` to enable SSL
+- `rejectUnauthorized`: set to `"false"` to allow self-signed certificates
+- `maxPoolSize`: customize pool size (defaults to 10)
+- `idleTimeoutMillis`: override idle timeout
+- `connectionTimeoutMillis`: override connection timeout
 
 ### API Request Examples
 
@@ -315,6 +338,7 @@ POST /api/db/execute
 
 ### Backend
 - `mssql` ^11.0.1 - SQL Server driver
+- `pg` ^8.12.0 - PostgreSQL driver
 - `jsonwebtoken` ^9.0.2 - JWT authentication
 - `bcryptjs` ^2.4.3 - Bcrypt hashing (optional)
 - `express-validator` ^7.2.2 - Request validation
@@ -330,6 +354,7 @@ server/
 ├── adapters/
 │   ├── DatabaseAdapter.js      # Abstract interface
 │   ├── SqlServerAdapter.js     # SQL Server implementation
+│   ├── PostgresAdapter.js      # PostgreSQL implementation
 │   └── AdapterFactory.js       # Factory pattern
 ├── models/
 │   └── DatabaseConnection.js   # MongoDB model
@@ -351,9 +376,12 @@ client/src/
 
 ## Testing Checklist
 
-- [ ] Create SQL Server connection
+> Repeat the following tests for each supported adapter (SQL Server, PostgreSQL).
+
+- [ ] Create database connection
 - [ ] Test connection validity
 - [ ] Execute SELECT query
+- [ ] Execute SELECT query (PostgreSQL)
 - [ ] Execute INSERT query
 - [ ] Execute UPDATE query
 - [ ] Execute DELETE query

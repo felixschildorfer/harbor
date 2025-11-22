@@ -75,8 +75,8 @@ A full-stack CRUD application for managing Anchor database models. Built with **
 - ✅ **Drag-and-Drop** - Upload XML files by dragging into create modal
 - ✅ **Model Versioning** - Auto-increment on XML changes, track history
 - ✅ **Comprehensive Testing** - 100+ tests (Jest backend, Vitest frontend)
-- ✅ **Database Integration** - Connect to SQL Server and execute queries directly
-- ✅ **Multi-Database Support** - Manage multiple database connections
+- ✅ **Database Integration** - Connect to SQL Server or PostgreSQL and execute queries directly
+- ✅ **Multi-Database Support** - Manage multiple database connections per user
 - ✅ **SQL Execution** - Run read/write queries with results display
 
 ### Creating Models
@@ -129,10 +129,12 @@ Harbor now supports direct database connectivity for executing SQL queries.
 **Managing Database Connections:**
 1. Click **"🗄️ DB Connections"** in sidebar
 2. Click **"+ New Connection"** button
-3. Fill in connection details (host, port, database, credentials)
+3. Fill in connection details (host, port, database, credentials) and choose SQL Server or PostgreSQL
 4. Click **"Create Connection"**
 5. Test connection validity with **"Test"** button
 6. Edit or delete connections as needed
+
+Default ports are pre-filled for each provider (1433 for SQL Server, 5432 for PostgreSQL), but you can override them as needed.
 
 **Executing SQL Queries:**
 1. Click **"⚡ Execute SQL"** in sidebar

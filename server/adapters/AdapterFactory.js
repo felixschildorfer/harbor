@@ -1,6 +1,5 @@
 import SqlServerAdapter from './SqlServerAdapter.js';
-// Future imports
-// import PostgresAdapter from './PostgresAdapter.js';
+import PostgresAdapter from './PostgresAdapter.js';
 // import MySQLAdapter from './MySQLAdapter.js';
 
 /**
@@ -19,8 +18,8 @@ class AdapterFactory {
         return new SqlServerAdapter(config);
       
       case 'postgres':
-        throw new Error('PostgreSQL adapter not yet implemented');
-        // return new PostgresAdapter(config);
+      case 'postgresql':
+        return new PostgresAdapter(config);
       
       case 'mysql':
         throw new Error('MySQL adapter not yet implemented');

@@ -5,6 +5,12 @@ import { databaseAPI } from '../services/api';
 /**
  * SqlExecutionPanel - Execute SQL queries and view results
  */
+const DB_LABELS = {
+  sqlserver: 'SQL Server',
+  postgres: 'PostgreSQL',
+  mysql: 'MySQL',
+};
+
 const SqlExecutionPanel = ({ isOpen, onClose, addToast }) => {
   const [connections, setConnections] = useState([]);
   const [selectedConnectionId, setSelectedConnectionId] = useState('');
@@ -131,11 +137,14 @@ const SqlExecutionPanel = ({ isOpen, onClose, addToast }) => {
                     disabled={loading || executing}
                     className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent disabled:opacity-50"
                   >
-                    {connections.map((conn) => (
-                      <option key={conn._id} value={conn._id}>
-                        {conn.name} ({conn.dbType} - {conn.databaseName})
-                      </option>
-                    ))}
+                    {connections.map((conn) => {
+                      const label = DB_LABELS[conn.dbType] || conn.dbType;
+                      return (
+                        <option key={conn._id} value={conn._id}>
+                          {conn.name} ({label} - {conn.databaseName})
+                        </option>
+                      );
+                    })}
                   </select>
                   {selectedConnection && (
                     <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600">

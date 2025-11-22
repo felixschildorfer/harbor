@@ -6,6 +6,12 @@ import ConnectionForm from './ConnectionForm';
 /**
  * DatabaseSettings - Manage database connections
  */
+const DB_LABELS = {
+  sqlserver: 'SQL Server',
+  postgres: 'PostgreSQL',
+  mysql: 'MySQL',
+};
+
 const DatabaseSettings = ({ isOpen, onClose, addToast }) => {
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -197,7 +203,7 @@ const DatabaseSettings = ({ isOpen, onClose, addToast }) => {
                             </h4>
                             <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-slate-600">
                               <div>
-                                <span className="font-medium">Type:</span> {conn.dbType.toUpperCase()}
+                                <span className="font-medium">Type:</span> {DB_LABELS[conn.dbType] || conn.dbType.toUpperCase()}
                               </div>
                               <div>
                                 <span className="font-medium">Database:</span> {conn.databaseName}

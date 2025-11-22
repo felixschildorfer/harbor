@@ -4,12 +4,18 @@ import PropTypes from 'prop-types';
 /**
  * ConnectionForm - Form for adding/editing database connections
  */
+const DEFAULT_PORTS = {
+  sqlserver: 1433,
+  postgres: 5432,
+  mysql: 3306,
+};
+
 const ConnectionForm = ({ onSubmit, onCancel, initialData = null, loading = false }) => {
   const [formData, setFormData] = useState(initialData || {
     name: '',
     dbType: 'sqlserver',
     host: '',
-    port: 1433,
+    port: DEFAULT_PORTS.sqlserver,
     username: '',
     password: '',
     databaseName: '',
@@ -17,10 +23,34 @@ const ConnectionForm = ({ onSubmit, onCancel, initialData = null, loading = fals
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'port' ? parseInt(value) || '' : value,
-    }));
+    setFormData(prev => {
+      if (name === 'dbType') {
+        const nextType = value;
+        const prevPort = prev.port;
+        const previousDefault = DEFAULT_PORTS[prev.dbType];
+        const nextDefault = DEFAULT_PORTS[nextType] ?? prevPort;
+
+        const shouldSwapPort = prevPort === previousDefault || prevPort === '';
+
+        return {
+          ...prev,
+          dbType: nextType,
+          port: shouldSwapPort ? nextDefault : prevPort,
+        };
+      }
+
+      if (name === 'port') {
+        return {
+          ...prev,
+          port: Number.parseInt(value, 10) || '',
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
   };
 
   const handleSubmit = (e) => {
@@ -42,7 +72,7 @@ const ConnectionForm = ({ onSubmit, onCancel, initialData = null, loading = fals
           onChange={handleChange}
           required
           disabled={loading}
-          placeholder="My SQL Server"
+          placeholder={formData.dbType === 'postgres' ? 'My PostgreSQL' : 'My SQL Server'}
           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent disabled:opacity-50"
         />
       </div>
@@ -61,7 +91,7 @@ const ConnectionForm = ({ onSubmit, onCancel, initialData = null, loading = fals
           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent disabled:opacity-50"
         >
           <option value="sqlserver">Microsoft SQL Server</option>
-          <option value="postgres" disabled>PostgreSQL (Coming Soon)</option>
+          <option value="postgres">PostgreSQL</option>
           <option value="mysql" disabled>MySQL (Coming Soon)</option>
         </select>
       </div>
@@ -132,7 +162,7 @@ const ConnectionForm = ({ onSubmit, onCancel, initialData = null, loading = fals
           onChange={handleChange}
           required
           disabled={loading}
-          placeholder="sa or username"
+          placeholder={formData.dbType === 'postgres' ? 'postgres' : 'sa or username'}
           autoComplete="username"
           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-ocean-500 focus:border-transparent disabled:opacity-50"
         />
