@@ -1,6 +1,5 @@
 import SqlServerAdapter from './SqlServerAdapter.js';
 import PostgresAdapter from './PostgresAdapter.js';
-// import MySQLAdapter from './MySQLAdapter.js';
 
 /**
  * AdapterFactory - Creates appropriate database adapter based on type
@@ -8,7 +7,7 @@ import PostgresAdapter from './PostgresAdapter.js';
 class AdapterFactory {
   /**
    * Create a database adapter
-   * @param {string} dbType - Type of database (sqlserver, postgres, mysql)
+  * @param {string} dbType - Type of database (sqlserver, postgres)
    * @param {Object} config - Connection configuration
    * @returns {DatabaseAdapter}
    */
@@ -20,10 +19,6 @@ class AdapterFactory {
       case 'postgres':
       case 'postgresql':
         return new PostgresAdapter(config);
-      
-      case 'mysql':
-        throw new Error('MySQL adapter not yet implemented');
-        // return new MySQLAdapter(config);
       
       default:
         throw new Error(`Unsupported database type: ${dbType}`);

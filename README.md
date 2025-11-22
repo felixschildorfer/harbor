@@ -59,7 +59,7 @@ A full-stack CRUD application for managing Anchor database models. Built with **
    cd server
    cp .env.example .env
    ```
-2. Update the following keys in `server/.env`:
+2. Update the following keys in `server/.env` (do **not** commit this file):
 
    | Variable | Description | Default |
    | --- | --- | --- |
@@ -75,6 +75,7 @@ A full-stack CRUD application for managing Anchor database models. Built with **
    > 🔐 **Tip:** generate secrets via `openssl rand -hex 32`.
 
 3. Restart the backend after editing `.env` so the new config is loaded.
+4. Keep the same `DB_ENCRYPTION_KEY` across restarts—rotating it will invalidate any stored database connection passwords. If you do need to rotate it, delete and recreate those connections so they can be re-encrypted with the new key.
 
 ### Bootstrap an Admin User
 
@@ -86,6 +87,14 @@ npm run create-admin -- --name "Harbor Admin" --email admin@example.com --passwo
 ```
 
 The script will create (or update) the user, ensure the `admin` role is assigned, and rotate refresh tokens if the password changes. You can also omit arguments and respond to the interactive prompts.
+
+### Authentication & Session Flow
+
+- Every API route requires an authenticated user; the React app will redirect to the sign-in screen until a session is established.
+- Short-lived access tokens (15 minutes by default) are stored in memory and mirrored to `localStorage` only so the client can bootstrap a session on refresh.
+- Refresh tokens live in an `httpOnly` cookie that the server rotates whenever a user logs in, refreshes, or signs out—clearing the cookie in the browser immediately invalidates the session.
+- Logging out or running `npm run create-admin` increments the user’s `tokenVersion`, which automatically invalidates outstanding refresh tokens for that user.
+- When developing locally, keep the backend and frontend origins in sync (`CLIENT_ORIGIN`) so cookies flow correctly; mismatched origins block refresh requests.
 
 ### MongoDB Configuration
 
@@ -111,8 +120,9 @@ The script will create (or update) the user, ensure the `admin` role is assigned
 - ✅ **Model Versioning** - Auto-increment on XML changes, track history
 - ✅ **Comprehensive Testing** - 100+ tests (Jest backend, Vitest frontend)
 - ✅ **Database Integration** - Connect to SQL Server or PostgreSQL and execute queries directly
-- ✅ **Multi-Database Support** - Manage multiple database connections per user
+- ✅ **Multi-Database Support** - Manage multiple SQL Server or PostgreSQL connections per user (MySQL coming soon)
 - ✅ **SQL Execution** - Run read/write queries with results display
+- ✅ **Role-Based Access** - Admin/editor roles gate access to database features and connection management
 
 ### Creating Models
 1. Click **"Upload Model"** button in sidebar

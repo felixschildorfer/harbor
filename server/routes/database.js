@@ -20,7 +20,7 @@ router.use(requireAuth);
 router.post('/connections',
   [
     body('name').trim().notEmpty().withMessage('Connection name is required'),
-    body('dbType').isIn(['sqlserver', 'postgres', 'mysql']).withMessage('Invalid database type'),
+    body('dbType').isIn(['sqlserver', 'postgres']).withMessage('Invalid database type'),
     body('host').trim().notEmpty().withMessage('Host is required'),
     body('port').isInt({ min: 1, max: 65535 }).withMessage('Valid port number is required'),
     body('username').trim().notEmpty().withMessage('Username is required'),

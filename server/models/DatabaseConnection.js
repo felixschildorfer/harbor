@@ -21,7 +21,7 @@ const databaseConnectionSchema = new mongoose.Schema({
   dbType: {
     type: String,
     required: [true, 'Database type is required'],
-    enum: ['sqlserver', 'postgres', 'mysql'],
+    enum: ['sqlserver', 'postgres'],
     default: 'sqlserver',
   },
   host: {

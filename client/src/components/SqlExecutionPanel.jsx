@@ -8,7 +8,6 @@ import { databaseAPI } from '../services/api';
 const DB_LABELS = {
   sqlserver: 'SQL Server',
   postgres: 'PostgreSQL',
-  mysql: 'MySQL',
 };
 
 const SqlExecutionPanel = ({ isOpen, onClose, addToast }) => {

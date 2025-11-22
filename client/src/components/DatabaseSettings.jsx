@@ -9,7 +9,6 @@ import ConnectionForm from './ConnectionForm';
 const DB_LABELS = {
   sqlserver: 'SQL Server',
   postgres: 'PostgreSQL',
-  mysql: 'MySQL',
 };
 
 const DatabaseSettings = ({ isOpen, onClose, addToast }) => {

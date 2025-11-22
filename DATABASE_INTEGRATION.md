@@ -4,6 +4,11 @@
 
 Harbor now supports direct integration with external databases, allowing users to connect to multiple database servers and execute SQL queries directly from the application interface. The current release ships with adapters for **Microsoft SQL Server** and **PostgreSQL**.
 
+> **Before you start**
+> 1. Configure `DB_ENCRYPTION_KEY` in `server/.env` with a 64-character hex value and restart the backend so the encryption helper can load it.
+> 2. Verify `CLIENT_ORIGIN` matches the React dev server origin so authenticated requests keep their cookies.
+> 3. Confirm MongoDB (local or Atlas) is reachable—connection metadata is persisted there alongside anchor models.
+
 ## Architecture
 
 ### Backend Components
@@ -16,9 +21,9 @@ Harbor now supports direct integration with external databases, allowing users t
 
 #### 2. Data Model
 - **DatabaseConnection**: MongoDB model storing connection details
-  - Encrypted password storage using AES-256
-  - User-specific connections via userId
-  - Support for multiple database types
+   - Encrypted password storage using AES-256
+   - User-specific connections via userId
+   - Support for SQL Server and PostgreSQL connections
 
 #### 3. API Endpoints (`/api/db/`)
 - `POST /connections` - Create new database connection
@@ -114,6 +119,7 @@ Results include:
    - Passwords encrypted with AES-256-CBC before storage
    - Decryption only occurs server-side during execution
    - Never sent to frontend
+   - Requires a stable `DB_ENCRYPTION_KEY`; rotating the key invalidates previously saved credentials and those connections must be recreated
 
 2. **SQL Injection Protection**
    - Basic pattern detection for dangerous SQL
@@ -198,7 +204,7 @@ Results include:
 {
   userId: String (indexed),
   name: String (required),
-  dbType: enum ['sqlserver', 'postgres', 'mysql'],
+   dbType: enum ['sqlserver', 'postgres'],
   host: String (required),
   port: Number (required),
   username: String (required),

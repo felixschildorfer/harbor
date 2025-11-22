@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 const DEFAULT_PORTS = {
   sqlserver: 1433,
   postgres: 5432,
-  mysql: 3306,
 };
 
 const ConnectionForm = ({ onSubmit, onCancel, initialData = null, loading = false }) => {
@@ -92,7 +91,6 @@ const ConnectionForm = ({ onSubmit, onCancel, initialData = null, loading = fals
         >
           <option value="sqlserver">Microsoft SQL Server</option>
           <option value="postgres">PostgreSQL</option>
-          <option value="mysql" disabled>MySQL (Coming Soon)</option>
         </select>
       </div>
 

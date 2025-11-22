@@ -3,6 +3,9 @@ node_modules/
 package-lock.json
 yarn.lock
 
+# Mongo backups / dumps
+mongo-backup-*/
+
 # Environment variables
 .env
 .env.local
