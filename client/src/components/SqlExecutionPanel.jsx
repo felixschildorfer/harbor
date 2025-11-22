@@ -24,23 +24,23 @@ const SqlExecutionPanel = ({ isOpen, onClose, addToast }) => {
     if (isOpen) {
       fetchConnections();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchConnections]);
 
-  const fetchConnections = async () => {
+  const fetchConnections = useCallback(async () => {
     try {
       setLoading(true);
       const response = await databaseAPI.getConnections();
       const conns = response.data.connections || [];
       setConnections(conns);
-      if (conns.length > 0 && !selectedConnectionId) {
-        setSelectedConnectionId(conns[0]._id);
+      if (conns.length > 0) {
+        setSelectedConnectionId((prev) => prev || conns[0]._id);
       }
     } catch (error) {
       addToast(error.response?.data?.message || 'Failed to fetch connections', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast]);
 
   const handleExecuteQuery = async () => {
     if (!query.trim()) {
