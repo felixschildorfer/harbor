@@ -7774,6 +7774,76 @@
 
     (function() {
         const API_URL = 'http://localhost:5000/api';
+        const TOKEN_STORAGE_KEY = 'harborAccessToken';
+        let cachedAccessToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+
+        function persistAccessToken(token) {
+            cachedAccessToken = token;
+            if (token) {
+                localStorage.setItem(TOKEN_STORAGE_KEY, token);
+            } else {
+                localStorage.removeItem(TOKEN_STORAGE_KEY);
+            }
+        }
+
+        function getAccessToken() {
+            if (cachedAccessToken) {
+                return cachedAccessToken;
+            }
+            const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+            cachedAccessToken = stored;
+            return stored;
+        }
+
+        async function refreshAccessToken() {
+            try {
+                const response = await fetch(`${API_URL}/auth/refresh`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to refresh session');
+                }
+                const data = await response.json();
+                persistAccessToken(data.accessToken);
+                return data.accessToken;
+            } catch (err) {
+                persistAccessToken(null);
+                throw err;
+            }
+        }
+
+        async function harborFetch(path, options = {}, retry = true) {
+            const headers = {
+                ...(options.headers || {}),
+            };
+
+            const token = getAccessToken();
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${API_URL}${path}`, {
+                ...options,
+                headers,
+                credentials: 'include',
+            });
+
+            if (response.status === 401 && retry) {
+                try {
+                    const newToken = await refreshAccessToken();
+                    headers.Authorization = `Bearer ${newToken}`;
+                    return harborFetch(path, { ...options, headers }, false);
+                } catch (authError) {
+                    throw new Error('Authentication required. Please log back in to Harbor and reopen the editor.');
+                }
+            }
+
+            return response;
+        }
         
         // Get modelId from query parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -7797,7 +7867,7 @@
         async function loadModelFromHarbor(id) {
             try {
                 Actions.showLoading('Loading model from Harbor...');
-                const response = await fetch(`${API_URL}/anchor-models/${id}`);
+                const response = await harborFetch(`/anchor-models/${id}`);
                 if (!response.ok) {
                     throw new Error(`Failed to load model: ${response.statusText}`);
                 }
@@ -7876,7 +7946,7 @@
                 
                 // If no model ID, create a new model first
                 if (!window.HARBOR_MODEL_ID) {
-                    const createResponse = await fetch(`${API_URL}/anchor-models`, {
+                    const createResponse = await harborFetch('/anchor-models', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -7902,7 +7972,7 @@
                 }
                 
                 // Update existing model
-                const response = await fetch(`${API_URL}/anchor-models/${window.HARBOR_MODEL_ID}`, {
+                const response = await harborFetch(`/anchor-models/${window.HARBOR_MODEL_ID}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

@@ -52,6 +52,41 @@ A full-stack CRUD application for managing Anchor database models. Built with **
 
 3. **Open in browser:** http://localhost:5173
 
+### Environment Configuration
+
+1. Copy the sample environment file and update the secrets:
+   ```bash
+   cd server
+   cp .env.example .env
+   ```
+2. Update the following keys in `server/.env`:
+
+   | Variable | Description | Default |
+   | --- | --- | --- |
+   | `PORT` | Express port | `5000` |
+   | `MONGODB_URI` | Mongo connection string | `mongodb://localhost:27017/harbor` |
+   | `CLIENT_ORIGIN` | Frontend origin allowed via CORS | `http://localhost:5173` |
+   | `JWT_ACCESS_SECRET` | Strong secret for 15m access tokens | _(required)_ |
+   | `JWT_REFRESH_SECRET` | Strong secret for refresh cookie | _(required)_ |
+   | `ACCESS_TOKEN_TTL` | Access token TTL | `15m` |
+   | `REFRESH_TOKEN_TTL` | Refresh token TTL | `7d` |
+   | `DB_ENCRYPTION_KEY` | 64-char hex key for encrypting saved DB passwords | _(required)_ |
+
+   > 🔐 **Tip:** generate secrets via `openssl rand -hex 32`.
+
+3. Restart the backend after editing `.env` so the new config is loaded.
+
+### Bootstrap an Admin User
+
+Authentication is enforced across all APIs. Seed the first admin account with the helper script:
+
+```bash
+cd server
+npm run create-admin -- --name "Harbor Admin" --email admin@example.com --password "S3cureP@ss" --roles admin,editor
+```
+
+The script will create (or update) the user, ensure the `admin` role is assigned, and rotate refresh tokens if the password changes. You can also omit arguments and respond to the interactive prompts.
+
 ### MongoDB Configuration
 
 **Local MongoDB (default):**

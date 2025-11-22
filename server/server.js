@@ -1,12 +1,13 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import anchorModelRoutes from './routes/anchorModels.js';
 import databaseRoutes from './routes/database.js';
-import { authMiddleware } from './middleware/auth.js';
+import authRoutes from './routes/auth.js';
 
 // Get __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -17,18 +18,24 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: CLIENT_ORIGIN,
+  credentials: true,
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
 
 // Serve static files from client/public (for Anchor Editor and assets)
 app.use(express.static(path.join(__dirname, '../client/public')));
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/anchor-models', anchorModelRoutes);
-app.use('/api/db', authMiddleware, databaseRoutes);
+app.use('/api/db', databaseRoutes);
 
 // Health check route
 app.get('/api', (req, res) => {

@@ -2,12 +2,104 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api';
 
+let accessToken = null;
+export const setAccessToken = (token) => {
+  accessToken = token;
+};
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
+
+const refreshClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${accessToken}`,
+    };
+  }
+  return config;
+});
+
+let isRefreshing = false;
+const refreshQueue = [];
+
+const processQueue = (error, token = null) => {
+  while (refreshQueue.length) {
+    const { resolve, reject } = refreshQueue.shift();
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  }
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes('/auth/login') &&
+      !originalRequest.url.includes('/auth/register') &&
+      !originalRequest.url.includes('/auth/refresh')
+    ) {
+      originalRequest._retry = true;
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((queueError) => Promise.reject(queueError));
+      }
+
+      isRefreshing = true;
+
+      try {
+        const { data } = await refreshClient.post('/auth/refresh');
+        setAccessToken(data.accessToken);
+        processQueue(null, data.accessToken);
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        setAccessToken(null);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export const authAPI = {
+  register: (payload) => api.post('/auth/register', payload),
+  login: (payload) => api.post('/auth/login', payload),
+  logout: () => api.post('/auth/logout'),
+  me: () => api.get('/auth/me'),
+  refresh: () => refreshClient.post('/auth/refresh'),
+};
 
 // Anchor Models API
 export const anchorModelsAPI = {

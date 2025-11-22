@@ -2,10 +2,16 @@ import mongoose from 'mongoose';
 import { encrypt, decrypt } from '../utils/encryption.js';
 
 const databaseConnectionSchema = new mongoose.Schema({
-  userId: {
-    type: String,
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
     index: true,
+  },
+  sharedWith: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'User',
+    default: [],
   },
   name: {
     type: String,
@@ -77,13 +83,14 @@ databaseConnectionSchema.methods.getDecryptedPassword = function() {
 databaseConnectionSchema.methods.getSafeConfig = function() {
   return {
     _id: this._id,
-    userId: this.userId,
+    ownerId: this.ownerId,
     name: this.name,
     dbType: this.dbType,
     host: this.host,
     port: this.port,
     username: this.username,
     databaseName: this.databaseName,
+    sharedWith: this.sharedWith,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

@@ -1,12 +1,29 @@
 import express from 'express';
 import AnchorModel from '../models/AnchorModel.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
+
+const isAdmin = (user) => user.roles?.includes('admin');
+const isOwner = (model, userId) => model.ownerId?.toString() === userId;
+const isShared = (model, userId) => model.sharedWith?.some((id) => id.toString() === userId);
+const canView = (model, user) => isOwner(model, user.id) || isShared(model, user.id) || isAdmin(user);
+const canEdit = (model, user) => isOwner(model, user.id) || isAdmin(user);
+
+router.use(requireAuth);
 
 // GET all anchor models
 router.get('/', async (req, res) => {
   try {
-    const anchorModels = await AnchorModel.find().sort({ createdAt: -1 });
+    const query = isAdmin(req.user)
+      ? {}
+      : {
+          $or: [
+            { ownerId: req.user.id },
+            { sharedWith: req.user.id },
+          ],
+        };
+    const anchorModels = await AnchorModel.find(query).sort({ createdAt: -1 });
     res.json(anchorModels);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -28,6 +45,7 @@ router.post('/', async (req, res) => {
     const modelName = name && name.trim() ? name.trim() : `Model ${new Date().toLocaleString()}`;
 
     const anchorModel = new AnchorModel({
+      ownerId: req.user.id,
       name: modelName,
       xmlContent: xmlContent.trim(),
       version: 1,
@@ -53,6 +71,9 @@ router.get('/:id/history', async (req, res) => {
     const anchorModel = await AnchorModel.findById(req.params.id);
     if (!anchorModel) {
       return res.status(404).json({ message: 'Anchor model not found' });
+    }
+    if (!canView(anchorModel, req.user)) {
+      return res.status(403).json({ message: 'Forbidden' });
     }
     
     const currentVersion = anchorModel.currentVersionNumber || anchorModel.version;
@@ -97,6 +118,9 @@ router.post('/:id/restore/:versionNumber', async (req, res) => {
     
     if (!anchorModel) {
       return res.status(404).json({ message: 'Anchor model not found' });
+    }
+    if (!canEdit(anchorModel, req.user)) {
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     let versionToRestore = null;
@@ -158,6 +182,9 @@ router.get('/:id', async (req, res) => {
     if (!anchorModel) {
       return res.status(404).json({ message: 'Anchor model not found' });
     }
+    if (!canView(anchorModel, req.user)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
     res.json(anchorModel);
   } catch (error) {
     console.error('Error fetching anchor model:', error);
@@ -173,6 +200,9 @@ router.put('/:id', async (req, res) => {
     const anchorModel = await AnchorModel.findById(req.params.id);
     if (!anchorModel) {
       return res.status(404).json({ message: 'Anchor model not found' });
+    }
+    if (!canEdit(anchorModel, req.user)) {
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     // Check if XML content has changed BEFORE updating
@@ -217,10 +247,15 @@ router.put('/:id', async (req, res) => {
 // DELETE anchor model
 router.delete('/:id', async (req, res) => {
   try {
-    const anchorModel = await AnchorModel.findByIdAndDelete(req.params.id);
+    const anchorModel = await AnchorModel.findById(req.params.id);
     if (!anchorModel) {
       return res.status(404).json({ message: 'Anchor model not found' });
     }
+    if (!canEdit(anchorModel, req.user)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    await anchorModel.deleteOne();
     res.json({ message: 'Anchor model deleted successfully' });
   } catch (error) {
     console.error('Error deleting anchor model:', error);

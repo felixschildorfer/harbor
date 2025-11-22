@@ -2,11 +2,16 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import DatabaseConnection from '../models/DatabaseConnection.js';
 import AdapterFactory from '../adapters/AdapterFactory.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
+const isAdmin = (user) => user.roles?.includes('admin');
+const isOwner = (connection, userId) => connection.ownerId?.toString() === userId;
+const isShared = (connection, userId) => connection.sharedWith?.some((id) => id.toString() === userId);
+const canAccess = (connection, user) => isOwner(connection, user.id) || isShared(connection, user.id) || isAdmin(user);
+const canModify = (connection, user) => isOwner(connection, user.id) || isAdmin(user);
 
-// Temporary user ID until JWT is implemented
-const TEMP_USER_ID = 'user123';
+router.use(requireAuth);
 
 /**
  * POST /api/db/connections
@@ -33,7 +38,7 @@ router.post('/connections',
 
       // Create new connection
       const connection = new DatabaseConnection({
-        userId: TEMP_USER_ID, // TODO: Replace with req.user.id from JWT
+        ownerId: req.user.id,
         name,
         dbType,
         host,
@@ -63,7 +68,15 @@ router.post('/connections',
  */
 router.get('/connections', async (req, res) => {
   try {
-    const connections = await DatabaseConnection.find({ userId: TEMP_USER_ID });
+    const query = isAdmin(req.user)
+      ? {}
+      : {
+          $or: [
+            { ownerId: req.user.id },
+            { sharedWith: req.user.id },
+          ],
+        };
+    const connections = await DatabaseConnection.find(query);
 
     res.json({
       connections: connections.map(conn => conn.getSafeConfig()),
@@ -80,13 +93,14 @@ router.get('/connections', async (req, res) => {
  */
 router.get('/connections/:id', async (req, res) => {
   try {
-    const connection = await DatabaseConnection.findOne({
-      _id: req.params.id,
-      userId: TEMP_USER_ID,
-    });
+    const connection = await DatabaseConnection.findById(req.params.id);
 
     if (!connection) {
       return res.status(404).json({ message: 'Connection not found' });
+    }
+
+    if (!canAccess(connection, req.user)) {
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     res.json({ connection: connection.getSafeConfig() });
@@ -116,13 +130,14 @@ router.put('/connections/:id',
     }
 
     try {
-      const connection = await DatabaseConnection.findOne({
-        _id: req.params.id,
-        userId: TEMP_USER_ID,
-      });
+      const connection = await DatabaseConnection.findById(req.params.id);
 
       if (!connection) {
         return res.status(404).json({ message: 'Connection not found' });
+      }
+
+      if (!canModify(connection, req.user)) {
+        return res.status(403).json({ message: 'Forbidden' });
       }
 
       // Update fields
@@ -152,14 +167,17 @@ router.put('/connections/:id',
  */
 router.delete('/connections/:id', async (req, res) => {
   try {
-    const connection = await DatabaseConnection.findOneAndDelete({
-      _id: req.params.id,
-      userId: TEMP_USER_ID,
-    });
+    const connection = await DatabaseConnection.findById(req.params.id);
 
     if (!connection) {
       return res.status(404).json({ message: 'Connection not found' });
     }
+
+    if (!canModify(connection, req.user)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    await connection.deleteOne();
 
     res.json({ message: 'Connection deleted successfully' });
   } catch (error) {
@@ -174,13 +192,14 @@ router.delete('/connections/:id', async (req, res) => {
  */
 router.post('/test-connection/:id', async (req, res) => {
   try {
-    const connection = await DatabaseConnection.findOne({
-      _id: req.params.id,
-      userId: TEMP_USER_ID,
-    });
+    const connection = await DatabaseConnection.findById(req.params.id);
 
     if (!connection) {
       return res.status(404).json({ message: 'Connection not found' });
+    }
+
+    if (!canAccess(connection, req.user)) {
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     // Create adapter and test connection
@@ -225,13 +244,14 @@ router.post('/execute',
       const { connectionId, query } = req.body;
 
       // Find the connection
-      const connection = await DatabaseConnection.findOne({
-        _id: connectionId,
-        userId: TEMP_USER_ID,
-      });
+      const connection = await DatabaseConnection.findById(connectionId);
 
       if (!connection) {
         return res.status(404).json({ message: 'Connection not found' });
+      }
+
+      if (!canAccess(connection, req.user)) {
+        return res.status(403).json({ message: 'Forbidden' });
       }
 
       // Create adapter with decrypted password
@@ -249,7 +269,7 @@ router.post('/execute',
       await adapter.close();
 
       // Log query execution for auditing
-      console.log(`Query executed by ${TEMP_USER_ID} on ${connection.name}:`, query.substring(0, 100));
+      console.log(`Query executed by ${req.user.id} on ${connection.name}:`, query.substring(0, 100));
 
       res.json(result);
     } catch (error) {

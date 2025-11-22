@@ -19,13 +19,6 @@ const SqlExecutionPanel = ({ isOpen, onClose, addToast }) => {
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
 
-  // Fetch connections
-  useEffect(() => {
-    if (isOpen) {
-      fetchConnections();
-    }
-  }, [isOpen, fetchConnections]);
-
   const fetchConnections = useCallback(async () => {
     try {
       setLoading(true);
@@ -41,6 +34,13 @@ const SqlExecutionPanel = ({ isOpen, onClose, addToast }) => {
       setLoading(false);
     }
   }, [addToast]);
+
+  // Fetch connections
+  useEffect(() => {
+    if (isOpen) {
+      fetchConnections();
+    }
+  }, [isOpen, fetchConnections]);
 
   const handleExecuteQuery = async () => {
     if (!query.trim()) {

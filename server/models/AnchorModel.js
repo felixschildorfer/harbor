@@ -25,6 +25,17 @@ const versionHistorySchema = new mongoose.Schema(
 
 const anchorModelSchema = new mongoose.Schema(
   {
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
+    sharedWith: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'User',
+      default: [],
+    },
     name: {
       type: String,
       required: true,

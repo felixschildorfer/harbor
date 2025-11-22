@@ -11,8 +11,11 @@ import SqlExecutionPanel from './components/SqlExecutionPanel';
 import Button from './components/Button';
 import { useToast } from './hooks/useToast';
 import { GridSkeleton } from './components/Skeleton';
+import { useAuth } from './auth/AuthProvider.jsx';
+import AuthScreen from './components/AuthScreen.jsx';
 
 function App() {
+  const { user, loading: authLoading, logout } = useAuth();
   const [anchorModels, setAnchorModels] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -246,6 +249,21 @@ function App() {
     setVersionHistoryModelId(null);
   }, [anchorModels, addToast]);
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex items-center gap-3 text-slate-600">
+          <span className="spinner" />
+          Checking session...
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen />;
+  }
+
   return (
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
@@ -353,6 +371,16 @@ function App() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <div className="text-right mr-4">
+                <p className="text-sm font-semibold text-navy-900">{user.name || user.email}</p>
+                <p className="text-xs text-slate-500">{user.roles?.join(', ')}</p>
+              </div>
+              <button
+                onClick={logout}
+                className="px-3 py-2 text-sm border border-slate-300 rounded-md hover:bg-slate-100"
+              >
+                Logout
+              </button>
               {loading && (
                 <span className="text-sm text-slate-600 flex items-center gap-2">
                   <span className="spinner" />
